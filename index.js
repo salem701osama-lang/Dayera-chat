@@ -1,100 +1,89 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http);
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: { origin: "*" },
+  maxHttpBufferSize: 1e8 // عشان الصور والريكورد
+});
 
-app.use(express.static('public'));
-app.use(express.json({limit: '10mb'}));
-app.use(express.urlencoded({limit: '10mb', extended: true}));
+app.use(express.static(path.join(__dirname)));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public-index.html'));
+});
 
-// كلمة سر الأدمن - غيرها
-const ADMIN_PASSWORD = 'salem-secret-2026';
-
-// تخزين مؤقت - هيتمسح لو السيرفر رستر
-let rooms = {};
-let users = {};
+let onlineUsers = {};
+let chatHistory = [];
+const MAX_MESSAGES = 2000;
 
 io.on('connection', (socket) => {
-  console.log('مستخدم جديد اتصل');
+  console.log('User connected:', socket.id);
 
-  // دخول الغرفة
-  socket.on('joinRoom', ({username, room}) => {
-    if(!username ||!room) {
-      socket.emit('error', 'اسمك واسم الغرفة مطلوبين');
-      return;
-    }
+  socket.on('join', (username) => {
+    onlineUsers[socket.id] = { id: socket.id, name: username };
 
-    username = username.trim().substring(0, 20);
-    room = room.trim().substring(0, 30);
+    // ابعت التاريخ للي دخل جديد
+    socket.emit('chatHistory', chatHistory);
 
-    // اعمل الغرفة لو مش موجودة
-    if(!rooms[room]) {
-      rooms[room] = {
-        messages: [],
-        users: []
-      };
-    }
-
-    // شوف لو الاسم موجود في الغرفة
-    if(rooms[room].users.includes(username)) {
-      socket.emit('error', 'الاسم ده موجود في الغرفة، غيره');
-      return;
-    }
-
-    // سجل المستخدم
-    socket.username = username;
-    socket.room = room;
-    users[socket.id] = {username, room};
-    rooms[room].users.push(username);
-    socket.join(room);
-
-    // ابعت الرسايل القديمة
-    socket.emit('joined', {
-      room: room,
-      messages: rooms[room].messages.slice(-150)
+    io.emit('userList', Object.values(onlineUsers).map(u => u.name));
+    io.emit('chat', {
+      user: 'النظام',
+      text: username + ' دخل الدردشة 🔥',
+      time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
+      msgId: 'sys-' + Date.now(),
+      id: 'system'
     });
-
-    // بلغ الكل ان فيه حد دخل
-    socket.to(room).emit('system', `${username} دخل الغرفة`);
-    console.log(`${username} دخل غرفة ${room}`);
   });
 
-  // رسالة جديدة
-  socket.on('chatMessage', ({msg, img}) => {
-    if(!socket.room ||!socket.username) return;
+  socket.on('chat', (data) => {
+    const user = onlineUsers[socket.id];
+    if(user) {
+      const msg = {
+        msgId: Date.now() + Math.random(),
+        user: user.name,
+        text: data.text || '',
+        img: data.img || null,
+        audio: data.audio || null,
+        time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
+        id: socket.id
+      };
 
-    const message = {
-      id: Date.now().toString(),
-      username: socket.username,
-      msg: msg? msg.substring(0, 1000) : null,
-      img: img || null,
-      time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'})
-    };
+      chatHistory.push(msg);
+      if(chatHistory.length > MAX_MESSAGES) chatHistory.shift();
 
-    rooms[socket.room].messages.push(message);
-
-    // احتفظ بآخر 200 رسالة بس
-    if(rooms[socket.room].messages.length > 200) {
-      rooms[socket.room].messages = rooms[socket.room].messages.slice(-200);
+      io.emit('chat', msg);
     }
-
-    io.to(socket.room).emit('message', message);
   });
 
-  // خروج
+  // مسح الرسالة
+  socket.on('deleteMsg', (msgId) => {
+    const user = onlineUsers[socket.id];
+    if(user) {
+      chatHistory = chatHistory.filter(m => m.msgId!= msgId);
+      io.emit('msgDeleted', msgId);
+    }
+  });
+
   socket.on('disconnect', () => {
-    if(socket.room && socket.username) {
-      rooms[socket.room].users = rooms[socket.room].users.filter(u => u!== socket.username);
-      socket.to(socket.room).emit('system', `${socket.username} خرج من الغرفة`);
-      delete users[socket.id];
-
-      // امسح الغرفة لو فضيت
-      if(rooms[socket.room].users.length === 0) {
-        delete rooms[socket.room];
-      }
+    const user = onlineUsers[socket.id];
+    if(user) {
+      delete onlineUsers[socket.id];
+      io.emit('userList', Object.values(onlineUsers).map(u => u.name));
+      io.emit('chat', {
+        user: 'النظام',
+        text: user.name + ' خرج من الدردشة',
+        time: '',
+        msgId: 'sys-' + Date.now(),
+        id: 'system'
+      });
     }
-    console.log('مستخدم خرج');
   });
 });
 
-// صفحة الأد
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log('دايرة شات شغال على بورت ' + PORT);
+});

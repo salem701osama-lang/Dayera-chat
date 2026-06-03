@@ -1,13 +1,13 @@
 {
-  "name": "dayra-chat-pro",
-  "version": "4.0.0",
-  "description": "شات دايرة برو - برمجة سالم حجاج",
+  "name": "dayera-chat",
+  "version": "1.0.0",
+  "description": "برنامج مراسلة خاص - سالم حجاج",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
     "express": "^4.18.2",
-    "socket.io": "^4.7.2"
+    "socket.io": "^4.7.4"
   }
 }
