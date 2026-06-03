@@ -7,19 +7,23 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static(path.join(__dirname, 'public')));
+// خلي السيرفر يخدم الملفات من الجذر عشان public-index.html موجود هناك
+app.use(express.static(path.join(__dirname)));
 
+// لما حد يفتح الموقع يفتحله ملف public-index.html
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public-index.html'));
 });
 
 let onlineUsers = {};
 
 io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+  
   socket.on('join', (username) => {
     onlineUsers[socket.id] = username;
     io.emit('userList', Object.values(onlineUsers));
-    io.emit('chat', { user: 'النظام', text: `${username} دخل الدردشة 🔥` });
+    io.emit('chat', { user: 'النظام', text: username + ' دخل الدردشة 🔥' });
   });
 
   socket.on('chat', (msg) => {
@@ -28,11 +32,15 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     const username = onlineUsers[socket.id];
-    delete onlineUsers[socket.id];
-    io.emit('userList', Object.values(onlineUsers));
-    io.emit('chat', { user: 'النظام', text: `${username} خرج من الدردشة` });
+    if(username) {
+      delete onlineUsers[socket.id];
+      io.emit('userList', Object.values(onlineUsers));
+      io.emit('chat', { user: 'النظام', text: username + ' خرج من الدردشة' });
+    }
   });
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => console.log(`شغال على ${PORT}`));
+server.listen(PORT, '0.0.0.0', () => {
+  console.log('Server شغال على بورت ' + PORT);
+});

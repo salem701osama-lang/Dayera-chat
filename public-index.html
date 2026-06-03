@@ -2,36 +2,61 @@
 <html dir="rtl" lang="ar">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>دردشة دايرة</title>
 <style>
-body{font-family:tahoma;background:#111;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh}
-#chat{width:400px;height:500px;border:1px solid #444;display:flex;flex-direction:column}
-#msgs{flex:1;overflow-y:auto;padding:10px}
-input,button{padding:10px;border:none}
+*{box-sizing:border-box}
+body{margin:0;font-family:tahoma;background:#0a0a0a;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh}
+#chat{width:95%;max-width:500px;height:90vh;border:2px solid #00ff88;border-radius:15px;display:flex;flex-direction:column;background:#1a1a1a;overflow:hidden}
+#msgs{flex:1;overflow-y:auto;padding:15px;word-wrap:break-word}
+#msgs div{margin:8px 0;padding:10px;background:#2a2a2a;border-radius:8px}
+#inputArea{display:flex;border-top:2px solid #333}
+input{flex:1;padding:15px;border:none;outline:none;background:#222;color:#fff;font-size:16px}
+button{padding:15px 20px;border:none;background:#00ff88;color:#000;font-weight:bold;cursor:pointer;font-size:16px}
+#name{border-bottom:1px solid #333}
 </style>
 </head>
 <body>
 <div id="chat">
-  <div id="msgs"></div>
-  <input id="name" placeholder="اكتب اسمك">
-  <input id="msg" placeholder="اكتب رسالتك">
-  <button onclick="send()">إرسال</button>
+  <div id="msgs"><div><b>النظام:</b> اكتب اسمك واضغط Enter عشان تدخل 🔥</div></div>
+  <input id="name" placeholder="اكتب اسمك واضغط Enter">
+  <div id="inputArea">
+    <input id="msg" placeholder="اكتب رسالتك واضغط Enter" disabled>
+    <button onclick="send()">إرسال</button>
+  </div>
 </div>
 <script src="/socket.io/socket.io.js"></script>
 <script>
 const socket = io();
 const msgs = document.getElementById('msgs');
+const nameInput = document.getElementById('name');
+const msgInput = document.getElementById('msg');
 let myName = '';
 
 function send(){
-  if(!myName) myName = document.getElementById('name').value;
-  const m = document.getElementById('msg').value;
-  socket.emit('join', myName);
-  socket.emit('chat', m);
-  document.getElementById('msg').value = '';
+  if(!myName) {
+    myName = nameInput.value.trim();
+    if(myName) {
+      socket.emit('join', myName);
+      nameInput.disabled = true;
+      msgInput.disabled = false;
+      msgInput.focus();
+      msgs.innerHTML += '<div><b>النظام:</b> أهلاً ' + myName + ' 🎉</div>';
+    }
+  } else {
+    const m = msgInput.value.trim();
+    if(m) {
+      socket.emit('chat', m);
+      msgInput.value = '';
+    }
+  }
 }
+
+nameInput.addEventListener('keypress', e => { if(e.key==='Enter') send() });
+msgInput.addEventListener('keypress', e => { if(e.key==='Enter') send() });
+
 socket.on('chat', d => {
-  msgs.innerHTML += `<div><b>${d.user}:</b> ${d.text}</div>`;
+  msgs.innerHTML += '<div><b>' + d.user + ':</b> ' + d.text + '</div>';
   msgs.scrollTop = msgs.scrollHeight;
 });
 </script>
