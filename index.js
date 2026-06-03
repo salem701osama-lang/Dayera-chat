@@ -5,12 +5,16 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  },
+  transports: ['websocket', 'polling']
+});
 
-// خلي السيرفر يخدم الملفات من الجذر عشان public-index.html موجود هناك
 app.use(express.static(path.join(__dirname)));
 
-// لما حد يفتح الموقع يفتحله ملف public-index.html
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public-index.html'));
 });
@@ -21,21 +25,29 @@ io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
   
   socket.on('join', (username) => {
-    onlineUsers[socket.id] = username;
-    io.emit('userList', Object.values(onlineUsers));
-    io.emit('chat', { user: 'النظام', text: username + ' دخل الدردشة 🔥' });
+    onlineUsers[socket.id] = { id: socket.id, name: username };
+    io.emit('userList', Object.values(onlineUsers).map(u => u.name));
+    io.emit('chat', { user: 'النظام', text: username + ' دخل الدردشة 🔥', time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}) });
   });
 
   socket.on('chat', (msg) => {
-    io.emit('chat', { user: onlineUsers[socket.id], text: msg });
+    const user = onlineUsers[socket.id];
+    if(user) {
+      io.emit('chat', { 
+        user: user.name, 
+        text: msg,
+        time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
+        id: socket.id
+      });
+    }
   });
 
   socket.on('disconnect', () => {
-    const username = onlineUsers[socket.id];
-    if(username) {
+    const user = onlineUsers[socket.id];
+    if(user) {
       delete onlineUsers[socket.id];
-      io.emit('userList', Object.values(onlineUsers));
-      io.emit('chat', { user: 'النظام', text: username + ' خرج من الدردشة' });
+      io.emit('userList', Object.values(onlineUsers).map(u => u.name));
+      io.emit('chat', { user: 'النظام', text: user.name + ' خرج من الدردشة', time: '' });
     }
   });
 });
