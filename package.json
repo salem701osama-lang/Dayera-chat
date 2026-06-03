@@ -1,7 +1,6 @@
 {
   "name": "dayera-chat",
   "version": "1.0.0",
-  "description": "شات دايرة مباشر",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
