@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: "*" },
-  transports: ['websocket', 'polling']
+  maxHttpBufferSize: 1e8 // عشان الصور والريكورد
 });
 
 app.use(express.static(path.join(__dirname)));
@@ -24,20 +24,29 @@ io.on('connection', (socket) => {
 
   socket.on('join', (username) => {
     onlineUsers[socket.id] = { id: socket.id, name: username };
+
+    // ابعت التاريخ للي دخل جديد
     socket.emit('chatHistory', chatHistory);
+
     io.emit('userList', Object.values(onlineUsers).map(u => u.name));
-    io.emit('chat', { user: 'النظام', text: username + ' دخل الدردشة 🔥', time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}), msgId: Date.now() });
+    io.emit('chat', {
+      user: 'النظام',
+      text: username + ' دخل الدردشة 🔥',
+      time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
+      msgId: 'sys-' + Date.now(),
+      id: 'system'
+    });
   });
 
   socket.on('chat', (data) => {
     const user = onlineUsers[socket.id];
     if(user) {
       const msg = {
-        msgId: Date.now() + Math.random(), // ID للمسح
+        msgId: Date.now() + Math.random(),
         user: user.name,
         text: data.text || '',
         img: data.img || null,
-        audio: data.audio || null, // ← الريكورد
+        audio: data.audio || null,
         time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
         id: socket.id
       };
@@ -54,7 +63,7 @@ io.on('connection', (socket) => {
     const user = onlineUsers[socket.id];
     if(user) {
       chatHistory = chatHistory.filter(m => m.msgId!= msgId);
-      io.emit('msgDeleted', msgId); // بلغ الكل ان الرسالة اتمسحت
+      io.emit('msgDeleted', msgId);
     }
   });
 
@@ -63,12 +72,18 @@ io.on('connection', (socket) => {
     if(user) {
       delete onlineUsers[socket.id];
       io.emit('userList', Object.values(onlineUsers).map(u => u.name));
-      io.emit('chat', { user: 'النظام', text: user.name + ' خرج من الدردشة', time: '', msgId: Date.now() });
+      io.emit('chat', {
+        user: 'النظام',
+        text: user.name + ' خرج من الدردشة',
+        time: '',
+        msgId: 'sys-' + Date.now(),
+        id: 'system'
+      });
     }
   });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-  console.log('Server شغال على بورت ' + PORT);
+  console.log('دايرة شات شغال على بورت ' + PORT);
 });

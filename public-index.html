@@ -3,58 +3,117 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>دايرة - سالم حجاج</title>
+<title>دايرة شات - سالم حجاج</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:tahoma;background:#0e1621;color:#fff;height:100vh;overflow:hidden}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma}
+body{background:#0a0e13;color:#fff;height:100vh;overflow:hidden}
 
-/* واجهة الدخول */
-#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#17212b 0%,#0e1621 100%);padding:20px}
-.logo{font-size:42px;font-weight:bold;color:#6ab7ff;margin-bottom:5px;letter-spacing:2px}
-#loginScreen h1{font-size:18px;color:#aaa;margin-bottom:25px}
-#loginScreen input{width:100%;max-width:300px;padding:12px;border:none;outline:none;background:#242f3d;color:#fff;border-radius:12px;font-size:15px;margin-bottom:12px;text-align:center}
-#loginScreen button{width:100%;max-width:300px;padding:12px;border:none;background:#5288c4;color:#fff;border-radius:12px;font-weight:bold;cursor:pointer;font-size:15px}
-.disclaimer{font-size:10px;color:#555;margin-top:20px;text-align:center;line-height:1.5}
+/* واجهة الدخول بالبانر */
+#loginScreen{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  height:100vh;background:linear-gradient(135deg,#1a2332 0%,#0a0e13 100%);padding:20px
+}
+.banner{
+  text-align:center;margin-bottom:40px;padding:25px;
+  background:linear-gradient(135deg,#2b5278,#1e3a5f);
+  border-radius:20px;box-shadow:0 8px 30px rgba(43,82,120,0.4)
+}
+.banner h1{font-size:36px;font-weight:bold;color:#fff;letter-spacing:3px;margin-bottom:8px}
+.badge{background:#ff6b35;color:#fff;padding:5px 15px;border-radius:20px;font-size:12px;font-weight:bold}
+#loginScreen p{color:#8a9ba8;margin:20px 0;font-size:13px;text-align:center}
+#loginScreen input{
+  width:100%;max-width:320px;padding:14px;border:2px solid #2b5278;outline:none;
+  background:#1a2332;color:#fff;border-radius:12px;font-size:15px;margin-bottom:15px;text-align:center
+}
+#loginScreen input:focus{border-color:#5288c4}
+#loginScreen button{
+  width:100%;max-width:320px;padding:14px;border:none;background:linear-gradient(135deg,#5288c4,#3a6ea5);
+  color:#fff;border-radius:12px;font-weight:bold;cursor:pointer;font-size:15px;transition:0.3s
+}
+#loginScreen button:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(82,136,196,0.4)}
+.footer-text{font-size:10px;color:#555;margin-top:30px;text-align:center;line-height:1.6}
 
 /* الشات */
 #chatScreen{display:none;flex-direction:column;height:100vh}
-.header{background:#17212b;padding:12px 15px;text-align:center;border-bottom:1px solid #0e1621;position:relative}
-.header h1{font-size:16px;font-weight:bold;color:#6ab7ff}
-.header p{font-size:10px;color:#7d8b99;margin-top:2px}
-.exitBtn{position:absolute;left:10px;top:50%;transform:translateY(-50%);background:#e74c3c;border:none;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer}
+.header{
+  background:#1a2332;padding:15px;text-align:center;border-bottom:2px solid #0a0e13;
+  position:relative;box-shadow:0 2px 10px rgba(0,0,0,0.3)
+}
+.header h1{font-size:18px;font-weight:bold;color:#5288c4}
+.header p{font-size:11px;color:#8a9ba8;margin-top:3px}
 
-#msgs{flex:1;overflow-y:auto;padding:10px;background:#0e1621;display:flex;flex-direction:column}
-.msg{margin:6px 0;display:flex;flex-direction:column;max-width:75%;position:relative}
+.exitBtn{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  background:#e74c3c;border:none;color:#fff;padding:8px 14px;border-radius:10px;
+  font-size:12px;cursor:pointer;font-weight:bold;transition:0.2s
+}
+.exitBtn:hover{background:#c0392b}
+
+#msgs{
+  flex:1;overflow-y:auto;padding:15px;background:#0a0e13;
+  display:flex;flex-direction:column;scroll-behavior:smooth
+}
+.msg{margin:8px 0;display:flex;flex-direction:column;max-width:75%;position:relative;animation:slideUp 0.3s}
+@keyframes slideUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
 .msg.me{align-self:flex-end;align-items:flex-end}
 .msg.other{align-self:flex-start;align-items:flex-start}
-.msg div{background:#182533;padding:8px 12px;border-radius:12px;font-size:14px;word-wrap:break-word;line-height:1.4}
-.msg.me div{background:#2b5278;border-bottom-right-radius:3px}
-.msg.other div{border-bottom-left-radius:3px}
-.msg img{max-width:200px;border-radius:8px;margin-top:5px;cursor:pointer}
-.msg audio{max-width:220px;margin-top:5px}
-.msg small{font-size:10px;color:#7d8b99;margin-top:3px}
-.deleteBtn{position:absolute;top:-5px;left:-5px;background:#e74c3c;border:none;color:#fff;border-radius:50%;width:20px;height:20px;font-size:12px;cursor:pointer;display:none}
+.msg-bubble{
+  background:#1a2332;padding:10px 14px;border-radius:15px;font-size:14px;
+  word-wrap:break-word;line-height:1.5;position:relative
+}
+.msg.me.msg-bubble{background:#2b5278;border-bottom-right-radius:5px}
+.msg.other.msg-bubble{border-bottom-left-radius:5px}
+.msg img{max-width:250px;border-radius:10px;margin-top:6px;cursor:pointer;border:2px solid #2b5278}
+.msg audio{max-width:240px;margin-top:6px;border-radius:20px}
+.msg small{font-size:10px;color:#8a9ba8;margin-top:4px;display:block}
+.deleteBtn{
+  position:absolute;top:-8px;left:-8px;background:#e74c3c;border:none;color:#fff;
+  border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;
+  display:none;z-index:10;font-weight:bold
+}
 .msg.me:hover.deleteBtn{display:block}
-.system{text-align:center;color:#7d8b99;font-size:12px;margin:10px 0}
+.system{
+  text-align:center;color:#8a9ba8;font-size:12px;margin:12px 0;
+  padding:8px 15px;background:#1a2332;border-radius:20px;display:inline-block;align-self:center
+}
 
-#inputArea{display:flex;align-items:center;background:#17212b;padding:8px;border-top:1px solid #0e1621;gap:8px}
-#msg{flex:1;padding:10px 15px;border:none;outline:none;background:#242f3d;color:#fff;border-radius:20px;font-size:14px}
-.imgBtn,.micBtn{padding:10px 12px;border:none;background:#242f3d;color:#fff;border-radius:50%;cursor:pointer;font-size:18px}
-.micBtn.recording{background:#e74c3c}
-button.send{padding:10px 16px;border:none;background:#5288c4;color:#fff;border-radius:20px;font-weight:bold;cursor:pointer;font-size:14px}
+#inputArea{
+  display:flex;align-items:center;background:#1a2332;padding:10px;
+  border-top:2px solid #0a0e13;gap:8px
+}
+#msg{
+  flex:1;padding:12px 16px;border:2px solid #2b5278;outline:none;
+  background:#0a0e13;color:#fff;border-radius:25px;font-size:14px
+}
+#msg:focus{border-color:#5288c4}
+.actionBtn{
+  padding:12px 14px;border:none;background:#2b5278;color:#fff;
+  border-radius:50%;cursor:pointer;font-size:20px;transition:0.2s;min-width:45px
+}
+.actionBtn:active{transform:scale(0.9)}
+.actionBtn.recording{background:#e74c3c;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.sendBtn{
+  padding:12px 20px;border:none;background:linear-gradient(135deg,#5288c4,#3a6ea5);
+  color:#fff;border-radius:25px;font-weight:bold;cursor:pointer;font-size:14px
+}
 input[type=file]{display:none}
 </style>
 </head>
 <body>
 
-<!-- واجهة الدخول باللوجو -->
+<!-- واجهة الدخول بالبانر -->
 <div id="loginScreen">
-  <div class="logo">سالم حجاج</div>
-  <h1>برنامج مراسلة خاص</h1>
-  <input id="name" placeholder="اكتب اسمك">
-  <button onclick="joinChat()">دخول</button>
-  <div class="disclaimer">
-    برنامج مراسلة يخص الباشمهندس سالم حجاج<br>
+  <div class="banner">
+    <h1>دايرة شات</h1>
+    <span class="badge">خاص</span>
+  </div>
+  <p>من برمجة سالم حجاج</p>
+  <input id="name" placeholder="اكتب الاسم اللي هتظهر بيه">
+  <button onclick="joinChat()">دخول الشات الآن</button>
+  <div class="footer-text">
+    جميع الحقوق محفوظة © 2026<br>
+    برنامج مراسلة يخص سالم حجاج<br>
     غير تابع لأي جهة
   </div>
 </div>
@@ -64,19 +123,17 @@ input[type=file]{display:none}
   <div class="header">
     <button class="exitBtn" onclick="exitChat()">خروج</button>
     <h1>دايرة شات</h1>
-    <p>برمجة: سالم حجاج © 2026</p>
+    <p>من برمجة سالم حجاج © 2026</p>
   </div>
 
-  <div id="msgs">
-    <div class="system">نورت الشات 🔥</div>
-  </div>
+  <div id="msgs"></div>
 
   <div id="inputArea">
-    <label class="imgBtn" for="imgInput">📷</label>
+    <label class="actionBtn" for="imgInput">📷</label>
     <input type="file" id="imgInput" accept="image/*">
-    <button class="micBtn" id="micBtn" onclick="toggleRecord()">🎤</button>
-    <input id="msg" placeholder="اكتب رسالة...">
-    <button class="send" onclick="send()">إرسال</button>
+    <button class="actionBtn" id="micBtn" onclick="toggleRecord()">🎤</button>
+    <input id="msg" placeholder="اكتب رسالتك...">
+    <button class="sendBtn" onclick="send()">إرسال</button>
   </div>
 </div>
 
@@ -94,14 +151,18 @@ let mediaRecorder, audioChunks = [];
 
 function joinChat(){
   myName = nameInput.value.trim();
-  if(!myName) return alert('اكتب اسمك الأول');
+  if(!myName) return alert('اكتب اسمك الأول يا معلم');
+
   document.getElementById('loginScreen').style.display = 'none';
   document.getElementById('chatScreen').style.display = 'flex';
+
   socket.emit('join', myName);
   msgInput.focus();
 }
 
-function exitChat(){ location.reload(); }
+function exitChat(){
+  if(confirm('متأكد عايز تخرج؟')) location.reload();
+}
 
 function send(){
   const m = msgInput.value.trim();
@@ -117,6 +178,8 @@ msgInput.addEventListener('keypress', e => { if(e.key==='Enter') send() });
 imgInput.addEventListener('change', e => {
   const file = e.target.files[0];
   if(!file) return;
+  if(file.size > 8*1024*1024) return alert('الصورة كبيرة أوي، أقل من 8 ميجا');
+
   const reader = new FileReader();
   reader.onload = function(event) {
     socket.emit('chat', {text: '', img: event.target.result, audio: null});
@@ -128,19 +191,23 @@ imgInput.addEventListener('change', e => {
 // تسجيل الصوت
 async function toggleRecord(){
   if(!mediaRecorder || mediaRecorder.state === 'inactive'){
-    const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-    mediaRecorder = new MediaRecorder(stream);
-    audioChunks = [];
-    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
-    mediaRecorder.onstop = () => {
-      const audioBlob = new Blob(audioChunks, {type: 'audio/ogg'});
-      const reader = new FileReader();
-      reader.onload = () => socket.emit('chat', {text: '', img: null, audio: reader.result});
-      reader.readAsDataURL(audioBlob);
-    };
-    mediaRecorder.start();
-    micBtn.classList.add('recording');
-    micBtn.innerText = '⏹️';
+    try{
+      const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+      mediaRecorder = new MediaRecorder(stream);
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunks, {type: 'audio/webm'});
+        const reader = new FileReader();
+        reader.onload = () => socket.emit('chat', {text: '', img: null, audio: reader.result});
+        reader.readAsDataURL(audioBlob);
+      };
+      mediaRecorder.start();
+      micBtn.classList.add('recording');
+      micBtn.innerText = '⏹️';
+    }catch(err){
+      alert('اديني إذن المايك الأول');
+    }
   } else {
     mediaRecorder.stop();
     micBtn.classList.remove('recording');
@@ -150,7 +217,7 @@ async function toggleRecord(){
 
 // مسح الرسالة
 function deleteMsg(msgId){
-  if(confirm('تمسح الرسالة دي؟')){
+  if(confirm('عايز تمسح الرسالة دي؟')){
     socket.emit('deleteMsg', msgId);
   }
 }
@@ -158,18 +225,23 @@ function deleteMsg(msgId){
 socket.on('connect', () => { myId = socket.id });
 
 function renderMsg(d){
-  if(d.user === 'النظام') {
-    return '<div class="system">' + d.user + ': ' + d.text + '</div>';
-  } else {
-    const isMe = d.id === myId;
-    const imgHtml = d.img? '<br><img src="' + d.img + '" onclick="window.open(this.src)">' : '';
-    const audioHtml = d.audio? '<br><audio controls src="' + d.audio + '"></audio>' : '';
-    const delBtn = isMe? '<button class="deleteBtn" onclick="deleteMsg(' + d.msgId + ')">×</button>' : '';
-    return '<div class="msg ' + (isMe? 'me' : 'other') + '" id="msg-' + d.msgId + '">' + delBtn + '<div><b>' + d.user + '</b><br>' + d.text + imgHtml + audioHtml + '</div><small>' + d.time + '</small></div>';
+  if(d.id === 'system') {
+    return '<div class="system">' + d.text + '</div>';
   }
+
+  const isMe = d.id === myId;
+  const imgHtml = d.img? '<br><img src="' + d.img + '" onclick="window.open(this.src)">' : '';
+  const audioHtml = d.audio? '<br><audio controls src="' + d.audio + '"></audio>' : '';
+  const delBtn = isMe? '<button class="deleteBtn" onclick="deleteMsg(\'' + d.msgId + '\')">×</button>' : '';
+
+  return '<div class="msg ' + (isMe? 'me' : 'other') + '" id="msg-' + d.msgId + '">' +
+         delBtn +
+         '<div class="msg-bubble"><b>' + d.user + '</b><br>' + d.text + imgHtml + audioHtml + '</div>' +
+         '<small>' + d.time + '</small></div>';
 }
 
 socket.on('chatHistory', (history) => {
+  msgs.innerHTML = '';
   history.forEach(d => {
     msgs.innerHTML += renderMsg(d);
   });
@@ -183,7 +255,7 @@ socket.on('chat', d => {
 
 socket.on('msgDeleted', (msgId) => {
   const el = document.getElementById('msg-' + msgId);
-  if(el) el.remove();
+  if(el) el.style.display = 'none';
 });
 </script>
 </body>
