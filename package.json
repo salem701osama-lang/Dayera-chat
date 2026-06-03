@@ -1,7 +1,7 @@
 {
   "name": "dayra-chat-pro",
-  "version": "3.0.0",
-  "description": "شات بدون باسورد + أدمن مخفي",
+  "version": "4.0.0",
+  "description": "شات دايرة برو - برمجة سالم حجاج",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
