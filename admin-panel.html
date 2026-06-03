@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة الأدمن السرية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{font-family:'Cairo',sans-serif}
+body{background:#0a0e17;color:#fff;padding:20px}
+.container{max-width:600px;margin:0 auto}
+.box{background:#1e2538;padding:25px;border-radius:15px;margin:15px 0;border:1px solid #2b3245}
+h1{color:#faa61a;margin-bottom:20px;text-align:center}
+h3{color:#5865f2;margin-bottom:15px}
+input{width:100%;padding:12px;margin:8px 0;background:#131927;border:2px solid #2b3245;border-radius:8px;color:#fff;font-size:16px}
+.btn{padding:12px 20px;margin:5px;border:none;border-radius:8px;color:#fff;cursor:pointer;font-weight:600;font-size:15px}
+.btn-kick{background:#faa61a}
+.btn-ban{background:#ed4245}
+.btn-delete{background:#5865f2}
+.secret{font-size:12px;color:#96989d;text-align:center;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>⚙️ لوحة تحكم سالم السرية</h1>
+
+  <div class="box">
+    <h3>التحكم في اليوزر</h3>
+    <input id="room" placeholder="اسم الغرفة">
+    <input id="username" placeholder="اسم اليوزر بالظبط">
+    <button class="btn btn-kick" onclick="kick()">👢 طرد</button>
+    <button class="btn btn-ban" onclick="ban()">🔨 حظر نهائي</button>
+  </div>
+
+  <div class="box">
+    <h3>مسح رسالة</h3>
+    <input id="room2" placeholder="اسم الغرفة">
+    <input id="msgId" placeholder="ID الرسالة - دوس كليك يمين على الرسالة وانسخ الـ id">
+    <button class="btn btn-delete" onclick="deleteMsg()">🗑️ مسح الرسالة</button>
+  </div>
+
+  <p class="secret">الصفحة دي محدش يعرفها غيرك: /admin/salem-secret-2026</p>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+const socket = io();
+const ADMIN_KEY = 'salem-secret-2026';
+
+function kick() {
+  const data = {room:document.getElementById('room').value, username:document.getElementById('username').value};
+  if(!data.room ||!data.username) return alert('اكتب الغرفة واليوزر');
+  socket.emit('adminAction', {action:'kick', data, adminKey:ADMIN_KEY});
+  alert('تم إرسال أمر الطرد');
+}
+
+function ban() {
+  const data = {room:document.getElementById('room').value, username:document.getElementById('username').value};
+  if(!data.room ||!data.username) return alert('اكتب الغرفة واليوزر');
+  if(confirm(`متأكد تحظر ${data.username} نهائي؟`)) {
+    socket.emit('adminAction', {action:'ban', data, adminKey:ADMIN_KEY});
+    alert('تم إرسال أمر الحظر');
+  }
+}
+
+function deleteMsg() {
+  const data = {room:document.getElementById('room2').value, msgId:document.getElementById('msgId').value};
+  if(!data.room ||!data.msgId) return alert('اكتب الغرفة و ID الرسالة');
+  socket.emit('adminAction', {action:'deleteMsg', data, adminKey:ADMIN_KEY});
+  alert('تم مسح الرسالة');
+}
+</script>
+</body>
+</html>

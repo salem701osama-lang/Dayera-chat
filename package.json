@@ -1,7 +1,7 @@
 {
   "name": "dayra-chat-pro",
-  "version": "2.0.0",
-  "description": "شات متعدد الغرف بالأدمن",
+  "version": "3.0.0",
+  "description": "شات بدون باسورد + أدمن مخفي",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

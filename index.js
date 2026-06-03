@@ -9,65 +9,61 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
 const PORT = process.env.PORT || 3000;
-const ADMIN_KEY = 'salem-admin-2026'; // ← غير دي لكلمة سر قوية
+const ADMIN_SECRET = 'salem-secret-2026'; // ← غير دي لكلمة سر محدش يعرفها
 
-const rooms = {
-  'العام': { password: null, messages: [], users: [], banned: [] }
+// تخزين البيانات في الميموري
+let rooms = {
+  'العام': { messages: [], users: [], banned: [] }
 };
-const userSockets = new Map();
-const socketUsers = new Map();
+const userSockets = new Map(); // username -> socket.id
+const socketUsers = new Map(); // socket.id -> {username, room}
 
+// الملفات الثابتة
 app.use(express.static('public'));
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public-index.html'));
 });
 
+// صفحة الأدمن المخفية - محدش يوصلها غيرك
+app.get(`/admin/${ADMIN_SECRET}`, (req, res) => {
+  res.sendFile(path.join(__dirname, 'admin-panel.html'));
+});
+
 io.on('connection', (socket) => {
   console.log('مستخدم اتصل:', socket.id);
 
-  socket.on('joinRoom', ({username, room, password, adminKey}) => {
-    if(!username || username.length < 2) return socket.emit('error', 'الاسم لازم 2 حروف على الأقل');
+  // دخول غرفة - مفيش باسورد خالص
+  socket.on('joinRoom', ({username, room}) => {
+    if(!username || username.length < 2) return socket.emit('error', 'الاسم لازم حرفين على الأقل');
     if(!room) return socket.emit('error', 'اكتب اسم الغرفة');
 
-    // إنشاء غرفة جديدة لو الأدمن
-    if(!rooms[room]) {
-      if(adminKey === ADMIN_KEY) {
-        rooms[room] = { password: password || null, messages: [], users: [], banned: [] };
-        io.emit('roomsUpdate', Object.keys(rooms));
-      } else {
-        return socket.emit('error', 'الغرفة مش موجودة');
-      }
+    // إنشاء الغرفة لو جديدة
+    if(!rooms) {
+      rooms = { messages: [], users: [], banned: [] };
+      io.emit('roomsUpdate', Object.keys(rooms));
     }
 
-    // تشيك الباسورد
-    if(rooms[room].password && rooms[room].password!== password) {
-      return socket.emit('error', 'كلمة سر الغرفة غلط');
-    }
-
-    // تشيك الحظر
-    if(rooms[room].banned.includes(username.toLowerCase())) {
+    // تشيك الحظر بس
+    if(rooms.banned.includes(username.toLowerCase())) {
       return socket.emit('error', 'انت محظور من الغرفة دي');
     }
 
     socket.join(room);
-    const isAdmin = adminKey === ADMIN_KEY;
-    socketUsers.set(socket.id, {username, room, isAdmin});
+    socketUsers.set(socket.id, {username, room});
     userSockets.set(username.toLowerCase(), socket.id);
 
-    if(!rooms[room].users.includes(username)) rooms[room].users.push(username);
+    if(!rooms.users.includes(username)) rooms.users.push(username);
 
     socket.emit('joined', {
       room,
-      messages: rooms[room].messages.slice(-150),
-      isAdmin,
-      users: rooms[room].users
+      messages: rooms.messages.slice(-150)
     });
 
     socket.to(room).emit('system', `${username} دخل الغرفة`);
-    io.to(room).emit('usersUpdate', rooms[room].users);
-    io.emit('roomsUpdate', Object.keys(rooms));
+    io.to(room).emit('usersUpdate', rooms.users);
   });
 
+  // إرسال رسالة أو صورة
   socket.on('chatMessage', ({msg, img}) => {
     const user = socketUsers.get(socket.id);
     if(!user) return;
@@ -77,8 +73,7 @@ io.on('connection', (socket) => {
       username: user.username,
       msg: msg?.slice(0, 1500),
       img,
-      time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'}),
-      isAdmin: user.isAdmin
+      time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute: '2-digit'})
     };
 
     rooms[user.room].messages.push(message);
@@ -87,33 +82,31 @@ io.on('connection', (socket) => {
     io.to(user.room).emit('message', message);
   });
 
-  // أوامر الأدمن
-  socket.on('banUser', ({username, room}) => {
-    const user = socketUsers.get(socket.id);
-    if(!user?.isAdmin) return;
+  // أوامر الأدمن - من الصفحة المخفية بس
+  socket.on('adminAction', ({action, data, adminKey}) => {
+    if(adminKey!== ADMIN_SECRET) return;
 
-    rooms[room].banned.push(username.toLowerCase());
-    const targetSocket = userSockets.get(username.toLowerCase());
-    if(targetSocket) io.to(targetSocket).emit('kicked', 'تم حظرك نهائي من الغرفة');
-    io.to(room).emit('system', `👮 ${username} اتحظر من الأدمن`);
-    io.to(room).emit('usersUpdate', rooms[room].users.filter(u => u.toLowerCase()!== username.toLowerCase()));
-  });
+    const room = data.room;
+    if(!rooms) return;
 
-  socket.on('kickUser', ({username, room}) => {
-    const user = socketUsers.get(socket.id);
-    if(!user?.isAdmin) return;
+    if(action === 'ban') {
+      rooms.banned.push(data.username.toLowerCase());
+      const targetSocket = userSockets.get(data.username.toLowerCase());
+      if(targetSocket) io.to(targetSocket).emit('kicked', 'تم حظرك نهائي من الغرفة');
+      io.to(room).emit('system', `👮 ${data.username} اتحظر نهائي`);
+      io.to(room).emit('usersUpdate', rooms.users.filter(u => u.toLowerCase()!== data.username.toLowerCase()));
+    }
 
-    const targetSocket = userSockets.get(username.toLowerCase());
-    if(targetSocket) io.to(targetSocket).emit('kicked', 'تم طردك من الغرفة');
-    io.to(room).emit('system', `👢 ${username} اتطرد من الغرفة`);
-  });
+    if(action === 'kick') {
+      const targetSocket = userSockets.get(data.username.toLowerCase());
+      if(targetSocket) io.to(targetSocket).emit('kicked', 'تم طردك من الغرفة');
+      io.to(room).emit('system', `👢 ${data.username} اتطرد`);
+    }
 
-  socket.on('deleteMsg', ({msgId, room}) => {
-    const user = socketUsers.get(socket.id);
-    if(!user?.isAdmin) return;
-
-    rooms[room].messages = rooms[room].messages.filter(m => m.id!== msgId);
-    io.to(room).emit('msgDeleted', msgId);
+    if(action === 'deleteMsg') {
+      rooms.messages = rooms.messages.filter(m => m.id!== data.msgId);
+      io.to(room).emit('msgDeleted', data.msgId);
+    }
   });
 
   socket.on('disconnect', () => {
