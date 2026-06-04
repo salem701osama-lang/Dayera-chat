@@ -37,7 +37,15 @@ body{background:#0a0e13;color:#fff;height:100vh;overflow:hidden}
 .replyBox{background:rgba(82,136,196,.2);border-right:3px solid #5288c4;padding:5px 8px;border-radius:8px;margin-bottom:5px;font-size:11px;color:#aaa}
 .replyBox b{color:#5288c4}
 .msg img{max-width:220px;border-radius:10px;margin-top:6px;border:2px solid #2b5278;cursor:pointer}
-.msg audio{max-width:220px;margin-top:6px;border-radius:15px;width:100%}
+
+/* شكل الريكورد زي واتساب */
+.audioBox{display:flex;align-items:center;gap:8px;background:#1a2332;border-radius:20px;padding:8px 12px;min-width:200px}
+.audioBtn{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#5288c4,#3a6ea5);border:none;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.audioBtn:hover{transform:scale(1.1)}
+.audioProgress{flex:1;height:4px;background:#2b5278;border-radius:2px;position:relative;cursor:pointer}
+.audioProgressBar{height:100%;background:#5288c4;border-radius:2px;width:0%;transition:width 0.1s}
+.audioTime{font-size:10px;color:#8a9ba8;min-width:35px;text-align:center}
+
 .msg small{font-size:9px;color:#8a9ba8;margin-top:4px;display:flex;gap:8px;align-items:center}
 .msg small button{background:none;border:none;color:#8a9ba8;cursor:pointer;font-size:10px;padding:2px 5px;border-radius:5px}
 .msg small button:hover{color:#5288c4;background:rgba(82,136,196,.1)}
@@ -101,14 +109,31 @@ input[type=file]{display:none}
   </div>
 </div>
 
+<audio id="notifSound" src="data:audio/mp3;base64,SUQzBAAAAAABEVRYWFgAAAAtAAADY29tbWVudABQcm9ncmFtOiBhdWRhY2l0eS5jb20NCg==" preload="auto"></audio>
+
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const socket=io(),msgs=document.getElementById('msgs'),name=document.getElementById('name'),msg=document.getElementById('msg'),img=document.getElementById('img'),mic=document.getElementById('mic'),replyBox=document.getElementById('replyBox'),replyText=document.getElementById('replyText');
-let myId='',recorder,chunks=[],replyTo=null;
+const socket=io(),msgs=document.getElementById('msgs'),name=document.getElementById('name'),msg=document.getElementById('msg'),img=document.getElementById('img'),mic=document.getElementById('mic'),replyBox=document.getElementById('replyBox'),replyText=document.getElementById('replyText'),notifSound=document.getElementById('notifSound');
+let myId='',recorder,chunks=[],replyTo=null,playingAudio=null;
 
-function join(){if(!name.value.trim())return alert('اكتب اسمك الأول');document.getElementById('loginScreen').style.display='none';document.getElementById('chatScreen').style.display='flex';socket.emit('join',name.value.trim());msg.focus()}
+// طلب الصلاحيات أول ما يدخل
+async function requestPerms(){
+  if('Notification' in window && Notification.permission==='default'){
+    await Notification.requestPermission();
+  }
+  try{await navigator.mediaDevices.getUserMedia({audio:1})}catch(e){}
+}
+
+function join(){
+  if(!name.value.trim())return alert('اكتب اسمك الأول');
+  requestPerms();
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('chatScreen').style.display='flex';
+  socket.emit('join',name.value.trim());
+  msg.focus()
+}
+
 function send(){if(msg.value.trim()){socket.emit('chat',{text:msg.value,replyTo:replyTo});msg.value='';cancelReply()}}
-
 function cancelReply(){replyTo=null;replyBox.style.display='none'}
 
 msg.onkeypress=e=>{if(e.key==='Enter')send()}
@@ -117,7 +142,6 @@ img.onchange=e=>{const f=e.target.files[0];if(f&&f.size<8*1024*1024){const r=new
 async function rec(){
   if(!recorder||recorder.state==='inactive'){
     const stream=await navigator.mediaDevices.getUserMedia({audio:1});
-    // نستخدم mp4 عشان يشتغل على الموبايل جوة البرنامج
     const mime = MediaRecorder.isTypeSupported('audio/mp4')? 'audio/mp4' : 'audio/webm';
     recorder=new MediaRecorder(stream,{mimeType:mime});
     chunks=[];
@@ -136,6 +160,36 @@ function doReply(id,user,text){
 
 function del(id){if(confirm('تمسح الرسالة دي؟'))socket.emit('deleteMsg',id)}
 
+function playAudio(audioId,src){
+  const audio = document.getElementById(audioId);
+  const btn = document.querySelector('[data-audio="'+audioId+'"]');
+  const bar = document.querySelector('[data-bar="'+audioId+'"]');
+  const time = document.querySelector('[data-time="'+audioId+'"]');
+
+  if(playingAudio && playingAudio!==audio){
+    playingAudio.pause();
+    playingAudio.currentTime=0;
+    document.querySelector('[data-audio="'+playingAudio.id+'"]').innerText='▶️';
+  }
+
+  if(audio.paused){
+    audio.play();
+    btn.innerText='⏸️';
+    playingAudio=audio;
+  }else{
+    audio.pause();
+    btn.innerText='▶️';
+    playingAudio=null;
+  }
+
+  audio.ontimeupdate=()=>{
+    const progress=(audio.currentTime/audio.duration)*100;
+    bar.style.width=progress+'%';
+    time.innerText=Math.floor(audio.currentTime)+'"';
+  };
+  audio.onended=()=>{btn.innerText='▶️';bar.style.width='0%';time.innerText='0"';playingAudio=null};
+}
+
 socket.on('connect',()=>myId=socket.id);
 
 let allMsgs={};
@@ -147,11 +201,29 @@ function render(d){
   const btn=me?'<button class="deleteBtn" onclick="del(\''+d.msgId+'\')">×</button>':'';
   const replyBtn='<button onclick="doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`)">↩️ رد</button>';
 
-  return'<div class="msg '+(me?'me':'other')+'" id="m'+d.msgId+'">'+btn+'<div class="msg-bubble" ondblclick="doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`)">'+replyHtml+'<b>'+d.user+'</b><br>'+d.text+(d.img?'<br><img src="'+d.img+'" onclick="window.open(this.src)">':'')+(d.audio?'<br><audio controls src="'+d.audio+'"></audio>':'')+'</div><small>'+d.time+replyBtn+'</small></div>'
+  let audioHtml='';
+  if(d.audio){
+    const aid='a'+d.msgId;
+    audioHtml='<br><div class="audioBox"><button class="audioBtn" data-audio="'+aid+'" onclick="playAudio(\''+aid+'\',\''+d.audio+'\')">▶️</button><div class="audioProgress" onclick="playAudio(\''+aid+'\',\''+d.audio+'\')"><div class="audioProgressBar" data-bar="'+aid+'"></div></div><span class="audioTime" data-time="'+aid+'">0"</span><audio id="'+aid+'" src="'+d.audio+'" preload="none"></audio></div>';
+  }
+
+  return'<div class="msg '+(me?'me':'other')+'" id="m'+d.msgId+'">'+btn+'<div class="msg-bubble" ondblclick="doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`)">'+replyHtml+'<b>'+d.user+'</b><br>'+d.text+(d.img?'<br><img src="'+d.img+'" onclick="window.open(this.src)">':'')+audioHtml+'</div><small>'+d.time+replyBtn+'</small></div>'
+}
+
+function playNotif(){
+  if(Notification.permission==='granted' && document.hidden){
+    notifSound.play().catch(()=>{});
+    new Notification('رسالة جديدة', {body:'وصلتك رسالة في دايرة شات', icon:'🔔'});
+  }
 }
 
 socket.on('chatHistory',h=>{msgs.innerHTML='';allMsgs={};h.forEach(d=>{allMsgs[d.msgId]=d;msgs.innerHTML+=render(d)});msgs.scrollTop=msgs.scrollHeight});
-socket.on('chat',d=>{allMsgs[d.msgId]=d;msgs.innerHTML+=render(d);msgs.scrollTop=msgs.scrollHeight});
+socket.on('chat',d=>{
+  allMsgs[d.msgId]=d;
+  msgs.innerHTML+=render(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  if(d.id!==myId && d.id!=='system') playNotif();
+});
 socket.on('msgDeleted',id=>{const el=document.getElementById('m'+id);if(el)el.remove();delete allMsgs[id]});
 </script>
 </body>

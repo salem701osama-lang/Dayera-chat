@@ -49,7 +49,6 @@ io.on('connection', s => {
     io.emit('chat',msg);
   });
 
-  // حذف الرسالة - المالك بس
   s.on('deleteMsg', msgId => {
     const msg = chatHistory.find(m => m.msgId == msgId);
     if(msg && msg.id === s.id){
