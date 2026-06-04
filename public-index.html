@@ -37,7 +37,7 @@ body{background:#0a0e13;color:#fff;height:100vh;overflow:hidden}
 .replyBox{background:rgba(82,136,196,.2);border-right:3px solid #5288c4;padding:5px 8px;border-radius:8px;margin-bottom:5px;font-size:11px;color:#aaa}
 .replyBox b{color:#5288c4}
 .msg img{max-width:220px;border-radius:10px;margin-top:6px;border:2px solid #2b5278;cursor:pointer}
-.msg audio{max-width:220px;margin-top:6px;border-radius:15px}
+.msg audio{max-width:220px;margin-top:6px;border-radius:15px;width:100%}
 .msg small{font-size:9px;color:#8a9ba8;margin-top:4px;display:flex;gap:8px;align-items:center}
 .msg small button{background:none;border:none;color:#8a9ba8;cursor:pointer;font-size:10px;padding:2px 5px;border-radius:5px}
 .msg small button:hover{color:#5288c4;background:rgba(82,136,196,.1)}
@@ -117,10 +117,12 @@ img.onchange=e=>{const f=e.target.files[0];if(f&&f.size<8*1024*1024){const r=new
 async function rec(){
   if(!recorder||recorder.state==='inactive'){
     const stream=await navigator.mediaDevices.getUserMedia({audio:1});
-    recorder=new MediaRecorder(stream);
+    // نستخدم mp4 عشان يشتغل على الموبايل جوة البرنامج
+    const mime = MediaRecorder.isTypeSupported('audio/mp4')? 'audio/mp4' : 'audio/webm';
+    recorder=new MediaRecorder(stream,{mimeType:mime});
     chunks=[];
     recorder.ondataavailable=e=>chunks.push(e.data);
-    recorder.onstop=()=>{const r=new FileReader();r.onload=()=>socket.emit('chat',{audio:r.result,replyTo:replyTo});r.readAsDataURL(new Blob(chunks));cancelReply()};
+    recorder.onstop=()=>{const r=new FileReader();r.onload=()=>socket.emit('chat',{audio:r.result,replyTo:replyTo});r.readAsDataURL(new Blob(chunks,{type:mime}));cancelReply()};
     recorder.start();mic.classList.add('recording');mic.innerText='⏹️'
   }else{recorder.stop();mic.classList.remove('recording');mic.innerText='🎤'}
 }

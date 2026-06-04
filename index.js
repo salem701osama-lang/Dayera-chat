@@ -13,7 +13,6 @@ app.get('/', (req,res) => res.sendFile(path.join(__dirname,'public-index.html'))
 let onlineUsers = {}, chatHistory = [];
 const MAX = 2000;
 
-// فلتر الشتايم
 const bad = ['احا','كسمك','كس امك','كسامك','خول','يا خول','عرص','منيوك','متناك','شرموط','شرموطة','لبوة','نيك','منيك','fuck','shit','bitch'];
 function hasBad(t){
   if(!t) return 0;
@@ -41,7 +40,7 @@ io.on('connection', s => {
       text: d.text?d.text.slice(0,500):'',
       img: d.img||null,
       audio: d.audio||null,
-      replyTo: d.replyTo||null, // الرد على رسالة
+      replyTo: d.replyTo||null,
       time: new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),
       id: s.id
     };
@@ -53,7 +52,7 @@ io.on('connection', s => {
   // حذف الرسالة - المالك بس
   s.on('deleteMsg', msgId => {
     const msg = chatHistory.find(m => m.msgId == msgId);
-    if(msg && msg.id === s.id){ // يتأكد ان اللي بيحذف هو صاحب الرسالة
+    if(msg && msg.id === s.id){
       chatHistory = chatHistory.filter(m => m.msgId!= msgId);
       io.emit('msgDeleted', msgId);
     }
