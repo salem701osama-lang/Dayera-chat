@@ -1,306 +1,49 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>برنامج دايرة شات - مهندس سالم حجاج</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma}
-body{background:#0a0e13;color:#fff;height:100vh;overflow:hidden;user-select:none}
-
-/* دخول - أزرق × أسود */
-#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#0a0e13 0%,#1a2332 50%,#0a0e13 100%);padding:20px}
-.login-logo{width:90px;height:90px;background:linear-gradient(135deg,#2b5278,#5288c4);border-radius:30px;display:flex;align-items:center;justify-content:center;font-size:45px;margin-bottom:30px;box-shadow:0 15px 50px rgba(82,136,196,.6);border:2px solid #5288c4}
-.login-title{font-size:32px;color:#fff;margin-bottom:8px;font-weight:300;letter-spacing:2px;text-shadow:0 2px 10px rgba(82,136,196,.5)}
-.login-sub{font-size:14px;color:#8a9ba8;margin-bottom:45px}
-#loginScreen input{width:100%;max-width:360px;padding:16px;border:2px solid #2b5278;background:#1a2332;color:#fff;text-align:center;margin-bottom:25px;font-size:17px;border-radius:12px;transition:.3s}
-#loginScreen input:focus{border-color:#5288c4;box-shadow:0 0 20px rgba(82,136,196,.4);outline:none}
-#loginScreen button{width:100%;max-width:360px;padding:15px;border:none;background:linear-gradient(135deg,#5288c4,#3a6ea5);color:#fff;border-radius:12px;font-weight:600;cursor:pointer;font-size:16px;transition:.3s;box-shadow:0 5px 20px rgba(82,136,196,.5)}
-#loginScreen button:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(82,136,196,.7)}
-.footer-text{font-size:11px;color:#5a6b7a;margin-top:45px;text-align:center;line-height:1.8}
-
-/* هيدر أزرق غامق */
-#chatScreen{display:none;flex-direction:column;height:100vh;background:#0a0e13}
-.header{background:linear-gradient(90deg,#1a2332,#2b5278,#1a2332);padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:2px solid #000;box-shadow:0 2px 15px rgba(0,0,0,.5)}
-.backBtn{width:42px;height:42px;border-radius:50%;background:rgba(82,136,196,.2);border:1px solid #5288c4;color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.backBtn:hover{background:rgba(82,136,196,.4)}
-.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#2b5278,#5288c4);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border:2px solid #5288c4}
-.header-info{flex:1}
-.header-info h1{font-size:18px;color:#fff;font-weight:500;text-shadow:0 1px 5px rgba(0,0,0,.5)}
-.header-info p{font-size:13px;color:#8a9ba8}
-
-/* خلفية متدرجة متحركة */
-#msgs{flex:1;overflow-y:auto;padding:15px 10px;background:linear-gradient(180deg,#0a0e13 0%,#0f1722 50%,#0a0e13 100%);display:flex;flex-direction:column;gap:3px}
-#msgs::-webkit-scrollbar{width:5px}
-#msgs::-webkit-scrollbar-thumb{background:#2b5278;border-radius:5px}
-
-/* فقاعات أزرق × أسود */
-.msg{margin:2px 0;display:flex;flex-direction:column;max-width:70%;position:relative;animation:slideIn.3s}
-@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
-.msg.me{align-self:flex-end;margin-right:10px}
-.msg.other{align-self:flex-start;margin-left:10px}
-.msg-bubble{padding:10px 14px;border-radius:15px;font-size:14.5px;line-height:1.5;position:relative;word-wrap:break-word;border:1px solid}
-.msg.me.msg-bubble{background:linear-gradient(135deg,#2b5278,#1e4a70);border-color:#5288c4;border-bottom-right-radius:3px;box-shadow:0 2px 10px rgba(82,136,196,.3)}
-.msg.other.msg-bubble{background:#1a2332;border-color:#2b5278;border-bottom-left-radius:3px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.msg-user{font-size:13px;font-weight:700;color:#5288c4;margin-bottom:4px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
-.msg.me.msg-user{display:none}
-.replyBox{background:rgba(82,136,196,.2);border-right:3px solid #5288c4;padding:6px 10px;border-radius:8px;margin-bottom:6px;font-size:12px;color:#8a9ba8}
-.replyBox b{color:#5288c4}
-.msg img{max-width:260px;border-radius:12px;margin-top:5px;display:block;border:2px solid #2b5278}
-
-/* ريكورد أزرق */
-.audioBox{display:flex;align-items:center;gap:10px;padding:5px 0;min-width:190px}
-.audioBtn{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5288c4,#3a6ea5);border:none;color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(82,136,196,.4)}
-.audioProgress{flex:1;height:4px;background:#2b5278;border-radius:3px;position:relative}
-.audioProgressBar{height:100%;background:linear-gradient(90deg,#5288c4,#00aaff);border-radius:3px;width:0%}
-.audioTime{font-size:11px;color:#8a9ba8;min-width:35px;text-align:left}
-
-/* الوقت + الصح الأزرق */
-.msg-info{display:flex;align-items:center;gap:5px;margin-top:5px;justify-content:flex-end}
-.msg-time{font-size:11px;color:#8a9ba8}
-.read-checks{font-size:14px;color:#8a9ba8;font-weight:bold}
-.read-checks.read{color:#00aaff;text-shadow:0 0 5px rgba(0,170,255,.8)}
-
-.deleteBtn{position:absolute;top:-8px;left:-8px;background:linear-gradient(135deg,#e74c3c,#c0392b);border:none;color:#fff;border-radius:50%;width:24px;height:24px;font-size:15px;cursor:pointer;display:none;z-index:10;box-shadow:0 3px 10px rgba(0,0,0,.5)}
-.msg.me:hover.deleteBtn{display:block}
-
-.system{text-align:center;color:#8a9ba8;font-size:12px;margin:15px 0;padding:8px 15px;background:rgba(26,35,50,.8);border-radius:15px;align-self:center;border:1px solid #2b5278}
-
-/* إنبوت أزرق */
-#inputArea{display:flex;flex-direction:column;background:#1a2332;border-top:2px solid #000}
-.replying{display:none;background:rgba(82,136,196,.15);padding:10px 14px;border-right:3px solid #5288c4;font-size:12px;color:#8a9ba8;justify-content:space-between;align-items:center}
-.replying b{color:#5288c4}
-.replying span{flex:1;margin:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.replying button{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:20px}
-
-.inputRow{display:flex;align-items:center;padding:10px;gap:8px}
-#msg{flex:1;padding:13px 18px;border:2px solid #2b5278;background:#0a0e13;color:#fff;border-radius:25px;font-size:15px;transition:.3s}
-#msg:focus{border-color:#5288c4;box-shadow:0 0 15px rgba(82,136,196,.4);outline:none;background:#121a25}
-.actionBtn{width:48px;height:48px;border:none;background:linear-gradient(135deg,#2b5278,#1e3a5f);color:#fff;border-radius:50%;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;border:1px solid #5288c4}
-.actionBtn:hover{transform:scale(1.1);box-shadow:0 3px 12px rgba(82,136,196,.5)}
-.actionBtn.recording{background:linear-gradient(135deg,#e74c3c,#c0392b);border-color:#e74c3c;animation:pulse 1s infinite}
-@keyframes pulse{50%{transform:scale(1.15);box-shadow:0 0 20px rgba(231,76,60,.8)}}
-.sendBtn{width:48px;height:48px;border:none;background:linear-gradient(135deg,#5288c4,#3a6ea5);color:#fff;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s;border:2px solid #5288c4;box-shadow:0 4px 15px rgba(82,136,196,.5)}
-.sendBtn:hover{transform:scale(1.1) rotate(15deg);box-shadow:0 6px 25px rgba(82,136,196,.8)}
-input[type=file]{display:none}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>دايرة شات</title>
+  
+  <!-- PWA Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#5288c4">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  
+  <!-- CSS بتاعك هنا -->
 </head>
 <body>
-
-<div id="loginScreen">
-  <div class="login-logo">💬</div>
-  <div class="login-title">دايرة شات</div>
-  <div class="login-sub">من برمجة وتصميم المهندس سالم حجاج</div>
-  <input id="name" placeholder="اكتب اسمك">
-  <button onclick="join()">دخول الشات</button>
-  <div class="footer-text">
-    برنامج مراسلة خاص ومشفر<br>
-    © 2026 المهندس سالم حجاج - جميع الحقوق محفوظة
-  </div>
-</div>
-
-<div id="chatScreen">
-  <div class="header">
-    <button class="backBtn" onclick="location.reload()">←</button>
-    <div class="avatar">س</div>
-    <div class="header-info">
-      <h1>دايرة الشات</h1>
-      <p>متصل الآن</p>
-    </div>
-  </div>
-  <div id="msgs"></div>
-  <div id="inputArea">
-    <div class="replying" id="replyBox">
-      <b>رد على</b> <span id="replyText"></span>
-      <button onclick="cancelReply()">×</button>
-    </div>
-    <div class="inputRow">
-      <label class="actionBtn" for="img">📎</label>
-      <input type="file" id="img" accept="image/*">
-      <input id="msg" placeholder="اكتب رسالة...">
-      <button class="sendBtn mic" id="sendBtn" onclick="handleSend()">🎤</button>
-    </div>
-  </div>
-</div>
-
-<audio id="notifSound" src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBTGH0fPTgjMGHm7A7+OZURE" preload="auto"></audio>
-
-<script src="/socket.io/socket.io.js"></script>
-<script>
-const socket=io(),msgs=document.getElementById('msgs'),name=document.getElementById('name'),msg=document.getElementById('msg'),img=document.getElementById('img'),sendBtn=document.getElementById('sendBtn'),replyBox=document.getElementById('replyBox'),replyText=document.getElementById('replyText'),notifSound=document.getElementById('notifSound');
-let myId='',myUserId='',recorder,chunks=[],replyTo=null,playingAudio=null;
-
-async function requestPerms(){
-  if('Notification' in window && Notification.permission==='default') await Notification.requestPermission();
-  try{await navigator.mediaDevices.getUserMedia({audio:1})}catch(e){}
-}
-
-function join(){
-  if(!name.value.trim())return alert('اكتب اسمك');
-  requestPerms();
-  document.getElementById('loginScreen').style.display='none';
-  document.getElementById('chatScreen').style.display='flex';
-  socket.emit('join',name.value.trim());
-  msg.focus()
-}
-
-msg.oninput=()=>{
-  if(msg.value.trim()){
-    sendBtn.className='sendBtn send';
-    sendBtn.innerHTML='➤';
-  }else{
-    sendBtn.className='sendBtn mic';
-    sendBtn.innerHTML='🎤';
-  }
-}
-
-function handleSend(){
-  if(msg.value.trim()){
-    send();
-  }else{
-    rec();
-  }
-}
-
-function send(){
-  if(msg.value.trim()){
-    socket.emit('chat',{text:msg.value,replyTo:replyTo});
-    msg.value='';cancelReply();
-    sendBtn.className='sendBtn mic';
-    sendBtn.innerHTML='🎤';
-  }
-}
-function cancelReply(){replyTo=null;replyBox.style.display='none'}
-
-msg.onkeypress=e=>{if(e.key==='Enter')send()}
-
-img.onchange=e=>{
-  const f=e.target.files[0];
-  if(f&&f.size<10*1024*1024){
-    const r=new FileReader();
-    r.onload=()=>{
-      const i=new Image();
-      i.onload=()=>{
-        const c=document.createElement('canvas');
-        const max=900;let w=i.width,h=i.height;
-        if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
-        c.width=w;c.height=h;
-        c.getContext('2d').drawImage(i,0,0,w,h);
-        socket.emit('chat',{img:c.toDataURL('image/jpeg',0.8),replyTo:replyTo});
-        cancelReply()
-      };
-      i.src=r.result
-    };
-    r.readAsDataURL(f)
-  }
-  e.target.value=''
-}
-
-async function rec(){
-  if(!recorder||recorder.state==='inactive'){
-    const stream=await navigator.mediaDevices.getUserMedia({audio:1});
-    const mime=MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':'audio/webm';
-    recorder=new MediaRecorder(stream,{mimeType:mime});
-    chunks=[];
-    recorder.ondataavailable=e=>chunks.push(e.data);
-    recorder.onstop=()=>{const r=new FileReader();r.onload=()=>socket.emit('chat',{audio:r.result,replyTo:replyTo});r.readAsDataURL(new Blob(chunks,{type:mime}));cancelReply()};
-    recorder.start();sendBtn.classList.add('recording');sendBtn.innerHTML='⏹️'
-  }else{recorder.stop();sendBtn.classList.remove('recording');sendBtn.innerHTML='🎤'}
-}
-
-let touchTimer;
-function doReply(id,user,text){
-  replyTo=id;
-  replyBox.style.display='flex';
-  replyText.innerText=user+': '+(text||'وسائط');
-  msg.focus();
-}
-
-function del(id){
-  if(confirm('حذف الرسالة؟')) socket.emit('deleteMsg',id)
-}
-
-function playAudio(audioId){
-  const audio=document.getElementById(audioId);
-  const btn=document.querySelector('[data-audio="'+audioId+'"]');
-  const bar=document.querySelector('[data-bar="'+audioId+'"]');
-  const time=document.querySelector('[data-time="'+audioId+'"]');
-
-  if(playingAudio && playingAudio!==audio){
-    playingAudio.pause();playingAudio.currentTime=0;
-    document.querySelector('[data-audio="'+playingAudio.id+'"]').innerText='▶️';
-  }
-
-  if(audio.paused){
-    audio.play();btn.innerText='⏸️';playingAudio=audio;
-  }else{
-    audio.pause();btn.innerText='▶️';playingAudio=null;
-  }
-
-  audio.ontimeupdate=()=>{
-    bar.style.width=(audio.currentTime/audio.duration)*100+'%';
-    time.innerText=Math.floor(audio.currentTime)+'"';
-  };
-  audio.onended=()=>{btn.innerText='▶️';bar.style.width='0%';time.innerText='0"';playingAudio=null};
-}
-
-socket.on('connect',()=>myId=socket.id);
-socket.on('yourId',id=>myUserId=id);
-
-let allMsgs={};
-function render(d){
-  if(d.userId==='system')return'<div class="system">'+d.text+'</div>';
-  allMsgs[d.msgId]=d;
-  const me=d.userId===myUserId;
-  const replyHtml=d.replyTo&&allMsgs[d.replyTo]?'<div class="replyBox" onclick="doReply(\''+d.replyTo+'\',\''+allMsgs[d.replyTo].user+'\',`'+(allMsgs[d.replyTo].text||'وسائط').replace(/`/g,'')+'`)"><b>'+allMsgs[d.replyTo].user+'</b><br>'+(allMsgs[d.replyTo].text||'وسائط')+'</div>':'';
-
-  let mediaHtml='';
-  if(d.img) mediaHtml='<img src="'+d.img+'" onclick="window.open(this.src)">';
-  if(d.audio){
-    const aid='a'+d.msgId;
-    mediaHtml='<div class="audioBox"><button class="audioBtn" data-audio="'+aid+'" onclick="playAudio(\''+aid+'\')">▶️</button><div class="audioProgress"><div class="audioProgressBar" data-bar="'+aid+'"></div></div><span class="audioTime" data-time="'+aid+'">0"</span><audio id="'+aid+'" src="'+d.audio+'" preload="none"></audio></div>';
-  }
-
-  const checks=me?'<span class="read-checks '+(d.read?'read':'')+'">✓</span>':'';
-  const delBtn=me?'<button class="deleteBtn" onclick="del(\''+d.msgId+'\')">×</button>':'';
-  const userName=!me?'<div class="msg-user">'+d.user+'</div>':'';
-
-  return '<div class="msg '+(me?'me':'other')+'" id="m'+d.msgId+'" ontouchstart="touchTimer=setTimeout(()=>doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`),600)" ontouchend="clearTimeout(touchTimer)" ondblclick="doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`)">'+delBtn+'<div class="msg-bubble">'+replyHtml+userName+'<div>'+d.text+'</div>'+mediaHtml+'<div class="msg-info"><span class="msg-time">'+d.time+'</span>'+checks+'</div></div></div>'
-}
-
-function playNotif(){
-  if(Notification.permission==='granted' && document.hidden){
-    notifSound.play().catch(()=>{});
-    new Notification('رسالة جديدة', {body:'وصلتك رسالة في دايرة شات'});
-  }
-}
-
-socket.on('chatHistory',h=>{
-  msgs.innerHTML='';allMsgs={};
-  h.forEach(d=>{allMsgs[d.msgId]=d;msgs.innerHTML+=render(d)});
-  msgs.scrollTop=msgs.scrollHeight
-});
-
-socket.on('chat',d=>{
-  allMsgs[d.msgId]=d;
-  msgs.innerHTML+=render(d);
-  msgs.scrollTop=msgs.scrollHeight;
-  if(d.userId!==myUserId && d.userId!=='system'){
-    playNotif();
-    socket.emit('markRead',d.msgId);
-  }
-});
-
-socket.on('msgDeleted',id=>{
-  const el=document.getElementById('m'+id);
-  if(el) el.remove();
-  delete allMsgs[id]
-});
-
-socket.on('msgRead',id=>{
-  const el=document.querySelector('#m'+id+'.read-checks');
-  if(el) el.classList.add('read')
-});
-</script>
+  <!-- HTML بتاعك هنا -->
+  
+  <!-- Service Worker + Microphone Permission -->
+  <script>
+    // تسجيل Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('✅ SW registered'))
+        .catch(err => console.log('❌ SW error:', err));
+      });
+    }
+    
+    // طلب صلاحية المايك أول ما المستخدم يدوس ريكورد
+    async function requestMicPermission() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        console.log('✅ Microphone permission granted');
+        stream.getTracks().forEach(track => track.stop()); // اقفل المايك بعد الاختبار
+        return true;
+      } catch (err) {
+        console.error('❌ Microphone permission denied:', err);
+        alert('لازم توافق على المايك عشان تسجل ريكورد');
+        return false;
+      }
+    }
+    
+    // نادي الفنكشن دي قبل ما تبدأ تسجل
+    // مثال: document.getElementById('recordBtn').onclick = requestMicPermission;
+  </script>
 </body>
 </html>
