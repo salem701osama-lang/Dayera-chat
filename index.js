@@ -1,65 +1,63 @@
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
+const path = require('path');
+
 const app = express();
-const http = require('http').createServer(app);
-const io = require('socket.io')(http, {maxHttpBufferSize: 1e8});
+const server = http.createServer(app);
+const io = new Server(server, {cors:{origin:"*"}, maxHttpBufferSize:1e8});
 
-app.use(express.static('public'));
+app.use(express.static(path.join(__dirname)));
+app.get('/', (req,res) => res.sendFile(path.join(__dirname,'public-index.html')));
 
-let msgs = [];
+let onlineUsers = {}, chatHistory = [];
+const MAX = 2000;
 
-// فلتر الكلمات الممنوعة - زود براحتك
-const bannedWords = [
-  'كسمك', 'كس امك', 'كس ام', 'شرموط', 'عرص', 'منيوك', 'متناك', 'لبوة',
-  'fuck', 'shit', 'bitch', 'motherfucker', 'slut', 'asshole'
-];
+// فلتر الشتايم اللي طلبته
+const bad = ['كسمك','كس امك','شرموط','عرص','منيوك','متناك','لبوة','fuck','shit','bitch'];
+function hasBad(t){if(!t)return 0;t=t.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g,'');return bad.some(w=>t.includes(w))}
 
-function hasBadWords(text) {
-  if(!text) return false;
-  const clean = text.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF\s]/g, ' ');
-  return bannedWords.some(word => clean.includes(word));
-}
-
-io.on('connection', socket => {
-  socket.on('join', name => {
-    socket.name = name.substring(0,20);
-    socket.warnings = 0;
-    socket.emit('history', msgs);
-    socket.broadcast.emit('msg', {sys: socket.name + ' دخل الشات'});
+io.on('connection', s => {
+  s.on('join', name => {
+    onlineUsers[s.id] = {name};
+    s.emit('chatHistory', chatHistory);
+    io.emit('userList', Object.values(onlineUsers).map(u=>u.name));
+    io.emit('chat',{user:'النظام',text:name+' دخل 🔥',time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),msgId:'sys'+Date.now(),id:'system'});
   });
 
-  socket.on('msg', data => {
-    if(!socket.name) return;
-
-    // فلتر النص - لو فيه شتايم امسحها
-    if(data.text && hasBadWords(data.text)) {
-      socket.warnings++;
-      socket.emit('msg', {
-        sys: '⚠️ الرسالة اتمسحت عشان فيها ألفاظ. تحذير ' + socket.warnings + '/3'
-      });
-      if(socket.warnings >= 3) {
-        socket.emit('msg', {sys: '🚫 تم طردك دقيقة بسبب تكرار الألفاظ'});
-        setTimeout(() => socket.disconnect(), 1000);
-      }
-      return;
+  s.on('chat', d => {
+    const u = onlineUsers[s.id];
+    if(!u) return;
+    if(d.text && hasBad(d.text)){
+      return s.emit('chat',{user:'النظام',text:'⚠️ ممنوع الشتايم يا '+u.name,msgId:'warn'+Date.now(),id:'system'});
     }
-
-    const m = {
-      id: socket.id,
-      name: socket.name,
-      text: data.text? data.text.slice(0,500) : '',
-      img: data.img || null,
-      audio: data.audio || null,
-      time: new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
+    const msg = {
+      msgId: Date.now()+Math.random(),
+      user: u.name,
+      text: d.text?d.text.slice(0,500):'',
+      img: d.img||null,
+      audio: d.audio||null,
+      time: new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),
+      id: s.id
     };
-
-    msgs.push(m);
-    if(msgs.length > 400) msgs.shift(); // 400 رسالة
-    io.emit('msg', m);
+    chatHistory.push(msg);
+    if(chatHistory.length>MAX) chatHistory.shift();
+    io.emit('chat',msg);
   });
 
-  socket.on('disconnect', () => {
-    if(socket.name) socket.broadcast.emit('msg', {sys: socket.name + ' خرج'});
+  s.on('deleteMsg', id => {
+    chatHistory = chatHistory.filter(m=>m.msgId!=id);
+    io.emit('msgDeleted',id);
+  });
+
+  s.on('disconnect', () => {
+    const u = onlineUsers[s.id];
+    if(u){
+      delete onlineUsers[s.id];
+      io.emit('userList', Object.values(onlineUsers).map(u=>u.name));
+      io.emit('chat',{user:'النظام',text:u.name+' خرج',msgId:'sys'+Date.now(),id:'system'});
+    }
   });
 });
 
-http.listen(process.env.PORT || 3000, () => console.log('دايرة شات شغالة'));
+server.listen(process.env.PORT||3000,'0.0.0.0',()=>console.log('شغال'));
