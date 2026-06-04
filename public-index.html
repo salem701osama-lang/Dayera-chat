@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>دايرة شات</title>
+<title>دايرة شات - سالم حجاج</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma}
 body{background:#0a0e13;color:#fff;height:100vh;display:flex;flex-direction:column}
@@ -17,9 +17,9 @@ body{background:#0a0e13;color:#fff;height:100vh;display:flex;flex-direction:colu
 .msg{max-width:75%;padding:8px 12px;border-radius:12px;background:#1a2332;font-size:14px;word-wrap:break-word}
 .msg.me{align-self:flex-end;background:#2b5278}
 .msg small{display:block;font-size:10px;color:#8a9ba8;margin-top:4px}
-.msg img{max-width:200px;border-radius:8px;margin-top:5px}
+.msg img{max-width:200px;border-radius:8px;margin-top:5px;cursor:pointer}
 .msg audio{max-width:200px;margin-top:5px}
-.sys{text-align:center;color:#8a9ba8;font-size:12px;padding:5px}
+.sys{text-align:center;color:#ffaa00;font-size:12px;padding:6px;background:#1a2332;border-radius:8px;margin:5px 0}
 #input{display:flex;gap:8px;padding:10px;background:#1a2332;border-top:2px solid #000}
 #input input{flex:1;padding:10px;border:2px solid #2b5278;border-radius:20px;background:#0a0e13;color:#fff;outline:none}
 #input button{padding:10px 15px;border:none;border-radius:50%;background:#2b5278;color:#fff;font-size:18px;cursor:pointer}
@@ -75,28 +75,34 @@ txt.addEventListener('keypress', e => {if(e.key === 'Enter') send()});
 document.getElementById('img').onchange = e => {
   const f = e.target.files[0];
   if(!f) return;
-  if(f.size > 5*1024*1024) return alert('الصورة كبيرة');
+  if(f.size > 5*1024*1024) return alert('الصورة كبيرة، أقصى 5 ميجا');
   const r = new FileReader();
   r.onload = () => socket.emit('msg', {img: r.result});
   r.readAsDataURL(f);
+  e.target.value = '';
 };
 
 mic.onmousedown = mic.ontouchstart = async () => {
   if(recording) return;
-  const stream = await navigator.mediaDevices.getUserMedia({audio:true});
-  recorder = new MediaRecorder(stream);
-  chunks = [];
-  recorder.ondataavailable = e => chunks.push(e.data);
-  recorder.onstop = () => {
-    const blob = new Blob(chunks, {type:'audio/webm'});
-    const r = new FileReader();
-    r.onload = () => socket.emit('msg', {audio: r.result});
-    r.readAsDataURL(blob);
-  };
-  recorder.start();
-  recording = true;
-  mic.classList.add('rec');
-  mic.innerText = '⏹️';
+  try{
+    const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+    recorder = new MediaRecorder(stream);
+    chunks = [];
+    recorder.ondataavailable = e => chunks.push(e.data);
+    recorder.onstop = () => {
+      const blob = new Blob(chunks, {type:'audio/webm'});
+      const r = new FileReader();
+      r.onload = () => socket.emit('msg', {audio: r.result});
+      r.readAsDataURL(blob);
+      stream.getTracks().forEach(t => t.stop());
+    };
+    recorder.start();
+    recording = true;
+    mic.classList.add('rec');
+    mic.innerText = '⏹️';
+  }catch(err){
+    alert('اديني إذن المايك: ' + err.message);
+  }
 };
 
 mic.onmouseup = mic.ontouchend = () => {
@@ -110,11 +116,11 @@ mic.onmouseup = mic.ontouchend = () => {
 socket.on('connect', () => myId = socket.id);
 
 function add(m){
-  if(m.sys) return msgs.innerHTML += `<div class="sys">${m.sys}</div>`;
+  if(m.sys) return msgs.innerHTML += '<div class="sys">' + m.sys + '</div>';
   const me = m.id === myId;
-  const img = m.img? `<br><img src="${m.img}">` : '';
-  const audio = m.audio? `<br><audio controls src="${m.audio}"></audio>` : '';
-  msgs.innerHTML += `<div class="msg ${me?'me':''}"><b>${m.name}</b><br>${m.text||''}${img}${audio}<small>${m.time}</small></div>`;
+  const img = m.img? '<br><img src="' + m.img + '" onclick="window.open(this.src)">' : '';
+  const audio = m.audio? '<br><audio controls src="' + m.audio + '"></audio>' : '';
+  msgs.innerHTML += '<div class="msg ' + (me?'me':'') + '"><b>' + m.name + '</b><br>' + (m.text||'') + img + audio + '<small>' + m.time + '</small></div>';
   msgs.scrollTop = msgs.scrollHeight;
 }
 
