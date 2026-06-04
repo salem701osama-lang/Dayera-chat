@@ -6,72 +6,82 @@
 <title>برنامج دايرة شات - مهندس سالم حجاج</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',Tahoma}
-body{background:#0b141a;color:#e9edef;height:100vh;overflow:hidden;user-select:none}
+body{background:#0a0e13;color:#fff;height:100vh;overflow:hidden;user-select:none}
 
-#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0b141a;padding:20px}
-.login-logo{width:90px;height:90px;background:linear-gradient(135deg,#00a884,#128c7e);border-radius:30px;display:flex;align-items:center;justify-content:center;font-size:45px;margin-bottom:30px;box-shadow:0 10px 40px rgba(0,168,132,.5)}
-.login-title{font-size:30px;color:#e9edef;margin-bottom:8px;font-weight:300}
-.login-sub{font-size:14px;color:#8696a0;margin-bottom:45px}
-#loginScreen input{width:100%;max-width:360px;padding:16px;border:none;border-bottom:2px solid #2a3942;background:transparent;color:#e9edef;text-align:center;margin-bottom:25px;font-size:17px}
-#loginScreen input:focus{border-bottom-color:#00a884;outline:none}
-#loginScreen button{width:100%;max-width:360px;padding:15px;border:none;background:#00a884;color:#fff;border-radius:24px;font-weight:600;cursor:pointer;font-size:16px;box-shadow:0 4px 15px rgba(0,168,132,.4)}
-.footer-text{font-size:11px;color:#54656f;margin-top:45px;text-align:center}
+/* دخول - أزرق × أسود */
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#0a0e13 0%,#1a2332 50%,#0a0e13 100%);padding:20px}
+.login-logo{width:90px;height:90px;background:linear-gradient(135deg,#2b5278,#5288c4);border-radius:30px;display:flex;align-items:center;justify-content:center;font-size:45px;margin-bottom:30px;box-shadow:0 15px 50px rgba(82,136,196,.6);border:2px solid #5288c4}
+.login-title{font-size:32px;color:#fff;margin-bottom:8px;font-weight:300;letter-spacing:2px;text-shadow:0 2px 10px rgba(82,136,196,.5)}
+.login-sub{font-size:14px;color:#8a9ba8;margin-bottom:45px}
+#loginScreen input{width:100%;max-width:360px;padding:16px;border:2px solid #2b5278;background:#1a2332;color:#fff;text-align:center;margin-bottom:25px;font-size:17px;border-radius:12px;transition:.3s}
+#loginScreen input:focus{border-color:#5288c4;box-shadow:0 0 20px rgba(82,136,196,.4);outline:none}
+#loginScreen button{width:100%;max-width:360px;padding:15px;border:none;background:linear-gradient(135deg,#5288c4,#3a6ea5);color:#fff;border-radius:12px;font-weight:600;cursor:pointer;font-size:16px;transition:.3s;box-shadow:0 5px 20px rgba(82,136,196,.5)}
+#loginScreen button:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(82,136,196,.7)}
+.footer-text{font-size:11px;color:#5a6b7a;margin-top:45px;text-align:center;line-height:1.8}
 
-#chatScreen{display:none;flex-direction:column;height:100vh;background:#0b141a}
-.header{background:#1f2c33;padding:10px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid #2a3942;min-height:59px}
-.backBtn{width:40px;height:40px;border-radius:50%;background:transparent;border:none;color:#e9edef;font-size:24px;cursor:pointer}
-.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#00a884,#128c7e);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold}
+/* هيدر أزرق غامق */
+#chatScreen{display:none;flex-direction:column;height:100vh;background:#0a0e13}
+.header{background:linear-gradient(90deg,#1a2332,#2b5278,#1a2332);padding:12px 16px;display:flex;align-items:center;gap:12px;border-bottom:2px solid #000;box-shadow:0 2px 15px rgba(0,0,0,.5)}
+.backBtn{width:42px;height:42px;border-radius:50%;background:rgba(82,136,196,.2);border:1px solid #5288c4;color:#fff;font-size:24px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.backBtn:hover{background:rgba(82,136,196,.4)}
+.avatar{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#2b5278,#5288c4);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:bold;border:2px solid #5288c4}
 .header-info{flex:1}
-.header-info h1{font-size:17px;color:#e9edef;font-weight:500}
-.header-info p{font-size:13px;color:#8696a0}
+.header-info h1{font-size:18px;color:#fff;font-weight:500;text-shadow:0 1px 5px rgba(0,0,0,.5)}
+.header-info p{font-size:13px;color:#8a9ba8}
 
-#msgs{flex:1;overflow-y:auto;padding:12px 8px;background:#0b141a;background-image:radial-gradient(#1a2a32 1px, transparent 1px);background-size:30px 30px;display:flex;flex-direction:column;gap:2px}
+/* خلفية متدرجة متحركة */
+#msgs{flex:1;overflow-y:auto;padding:15px 10px;background:linear-gradient(180deg,#0a0e13 0%,#0f1722 50%,#0a0e13 100%);display:flex;flex-direction:column;gap:3px}
+#msgs::-webkit-scrollbar{width:5px}
+#msgs::-webkit-scrollbar-thumb{background:#2b5278;border-radius:5px}
 
-.msg{margin:1px 0;display:flex;flex-direction:column;max-width:65%;position:relative;animation:pop.2s}
-@keyframes pop{from{transform:scale(.8);opacity:0}to{transform:scale(1);opacity:1}}
-.msg.me{align-self:flex-end;margin-right:8px}
-.msg.other{align-self:flex-start;margin-left:8px}
-.msg-bubble{padding:8px 12px;border-radius:8px;font-size:14.2px;line-height:1.45;position:relative;word-wrap:break-word;box-shadow:0 1px.5px rgba(11,20,26,.13)}
-.msg.me.msg-bubble{background:#005c4b;border-top-right-radius:0}
-.msg.other.msg-bubble{background:#1f2c33;border-top-left-radius:0}
-.msg-user{font-size:13px;font-weight:600;color:#00a884;margin-bottom:3px}
+/* فقاعات أزرق × أسود */
+.msg{margin:2px 0;display:flex;flex-direction:column;max-width:70%;position:relative;animation:slideIn.3s}
+@keyframes slideIn{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.msg.me{align-self:flex-end;margin-right:10px}
+.msg.other{align-self:flex-start;margin-left:10px}
+.msg-bubble{padding:10px 14px;border-radius:15px;font-size:14.5px;line-height:1.5;position:relative;word-wrap:break-word;border:1px solid}
+.msg.me.msg-bubble{background:linear-gradient(135deg,#2b5278,#1e4a70);border-color:#5288c4;border-bottom-right-radius:3px;box-shadow:0 2px 10px rgba(82,136,196,.3)}
+.msg.other.msg-bubble{background:#1a2332;border-color:#2b5278;border-bottom-left-radius:3px;box-shadow:0 2px 8px rgba(0,0,0,.4)}
+.msg-user{font-size:13px;font-weight:700;color:#5288c4;margin-bottom:4px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
 .msg.me.msg-user{display:none}
-.replyBox{background:rgba(0,0,0,.2);border-right:3px solid #00a884;padding:6px 8px;border-radius:6px;margin-bottom:6px;font-size:12px;color:#8696a0}
-.replyBox b{color:#00a884}
-.msg img{max-width:250px;border-radius:8px;margin-top:4px;display:block}
+.replyBox{background:rgba(82,136,196,.2);border-right:3px solid #5288c4;padding:6px 10px;border-radius:8px;margin-bottom:6px;font-size:12px;color:#8a9ba8}
+.replyBox b{color:#5288c4}
+.msg img{max-width:260px;border-radius:12px;margin-top:5px;display:block;border:2px solid #2b5278}
 
-.audioBox{display:flex;align-items:center;gap:8px;padding:4px 0;min-width:180px}
-.audioBtn{width:32px;height:32px;border-radius:50%;background:#00a884;border:none;color:#fff;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}
-.audioProgress{flex:1;height:3px;background:#2a3942;border-radius:2px}
-.audioProgressBar{height:100%;background:#00a884;border-radius:2px;width:0%}
-.audioTime{font-size:11px;color:#8696a0;min-width:32px;text-align:left}
+/* ريكورد أزرق */
+.audioBox{display:flex;align-items:center;gap:10px;padding:5px 0;min-width:190px}
+.audioBtn{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#5288c4,#3a6ea5);border:none;color:#fff;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(82,136,196,.4)}
+.audioProgress{flex:1;height:4px;background:#2b5278;border-radius:3px;position:relative}
+.audioProgressBar{height:100%;background:linear-gradient(90deg,#5288c4,#00aaff);border-radius:3px;width:0%}
+.audioTime{font-size:11px;color:#8a9ba8;min-width:35px;text-align:left}
 
-.msg-info{display:flex;align-items:center;gap:4px;margin-top:4px;justify-content:flex-end}
-.msg-time{font-size:11px;color:#8696a0}
-.read-checks{font-size:13px;color:#8696a0}
-.read-checks.read{color:#53bdeb}
+/* الوقت + الصح الأزرق */
+.msg-info{display:flex;align-items:center;gap:5px;margin-top:5px;justify-content:flex-end}
+.msg-time{font-size:11px;color:#8a9ba8}
+.read-checks{font-size:14px;color:#8a9ba8;font-weight:bold}
+.read-checks.read{color:#00aaff;text-shadow:0 0 5px rgba(0,170,255,.8)}
 
-.deleteBtn{position:absolute;top:-8px;left:-8px;background:#e74c3c;border:none;color:#fff;border-radius:50%;width:22px;height:22px;font-size:14px;cursor:pointer;display:none;z-index:10}
+.deleteBtn{position:absolute;top:-8px;left:-8px;background:linear-gradient(135deg,#e74c3c,#c0392b);border:none;color:#fff;border-radius:50%;width:24px;height:24px;font-size:15px;cursor:pointer;display:none;z-index:10;box-shadow:0 3px 10px rgba(0,0,0,.5)}
 .msg.me:hover.deleteBtn{display:block}
 
-.system{text-align:center;color:#8696a0;font-size:12px;margin:12px 0;padding:6px 12px;background:#1f2c33;border-radius:8px;align-self:center}
+.system{text-align:center;color:#8a9ba8;font-size:12px;margin:15px 0;padding:8px 15px;background:rgba(26,35,50,.8);border-radius:15px;align-self:center;border:1px solid #2b5278}
 
-#inputArea{display:flex;flex-direction:column;background:#1f2c33}
-.replying{display:none;background:#2a3942;padding:8px 12px;border-right:3px solid #00a884;font-size:12px;color:#8696a0;justify-content:space-between;align-items:center}
-.replying b{color:#00a884}
-.replying span{flex:1;margin:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.replying button{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:18px}
+/* إنبوت أزرق */
+#inputArea{display:flex;flex-direction:column;background:#1a2332;border-top:2px solid #000}
+.replying{display:none;background:rgba(82,136,196,.15);padding:10px 14px;border-right:3px solid #5288c4;font-size:12px;color:#8a9ba8;justify-content:space-between;align-items:center}
+.replying b{color:#5288c4}
+.replying span{flex:1;margin:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.replying button{background:none;border:none;color:#e74c3c;cursor:pointer;font-size:20px}
 
-.inputRow{display:flex;align-items:center;padding:8px;gap:8px}
-#msg{flex:1;padding:12px 15px;border:none;background:#2a3942;color:#e9edef;border-radius:24px;font-size:15px}
-#msg:focus{background:#333e46;outline:none}
-.actionBtn{width:45px;height:45px;border:none;background:transparent;color:#8696a0;border-radius:50%;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center}
-.actionBtn:hover{background:#2a3942}
-.actionBtn.recording{color:#e74c3c;animation:pulse 1s infinite}
-@keyframes pulse{50%{opacity:.5}}
-.sendBtn{width:45px;height:45px;border:none;background:#00a884;color:#fff;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
-.sendBtn.mic{background:#00a884}
-.sendBtn.send{background:#00a884}
+.inputRow{display:flex;align-items:center;padding:10px;gap:8px}
+#msg{flex:1;padding:13px 18px;border:2px solid #2b5278;background:#0a0e13;color:#fff;border-radius:25px;font-size:15px;transition:.3s}
+#msg:focus{border-color:#5288c4;box-shadow:0 0 15px rgba(82,136,196,.4);outline:none;background:#121a25}
+.actionBtn{width:48px;height:48px;border:none;background:linear-gradient(135deg,#2b5278,#1e3a5f);color:#fff;border-radius:50%;cursor:pointer;font-size:22px;display:flex;align-items:center;justify-content:center;border:1px solid #5288c4}
+.actionBtn:hover{transform:scale(1.1);box-shadow:0 3px 12px rgba(82,136,196,.5)}
+.actionBtn.recording{background:linear-gradient(135deg,#e74c3c,#c0392b);border-color:#e74c3c;animation:pulse 1s infinite}
+@keyframes pulse{50%{transform:scale(1.15);box-shadow:0 0 20px rgba(231,76,60,.8)}}
+.sendBtn{width:48px;height:48px;border:none;background:linear-gradient(135deg,#5288c4,#3a6ea5);color:#fff;border-radius:50%;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.3s;border:2px solid #5288c4;box-shadow:0 4px 15px rgba(82,136,196,.5)}
+.sendBtn:hover{transform:scale(1.1) rotate(15deg);box-shadow:0 6px 25px rgba(82,136,196,.8)}
 input[type=file]{display:none}
 </style>
 </head>
@@ -82,8 +92,11 @@ input[type=file]{display:none}
   <div class="login-title">دايرة شات</div>
   <div class="login-sub">من برمجة وتصميم المهندس سالم حجاج</div>
   <input id="name" placeholder="اكتب اسمك">
-  <button onclick="join()">متابعة</button>
-  <div class="footer-text">منصة مراسلة خاصة<br>© 2026 المهندس سالم حجاج</div>
+  <button onclick="join()">دخول الشات</button>
+  <div class="footer-text">
+    برنامج مراسلة خاص ومشفر<br>
+    © 2026 المهندس سالم حجاج - جميع الحقوق محفوظة
+  </div>
 </div>
 
 <div id="chatScreen">
@@ -104,7 +117,7 @@ input[type=file]{display:none}
     <div class="inputRow">
       <label class="actionBtn" for="img">📎</label>
       <input type="file" id="img" accept="image/*">
-      <input id="msg" placeholder="اكتب رسالة">
+      <input id="msg" placeholder="اكتب رسالة...">
       <button class="sendBtn mic" id="sendBtn" onclick="handleSend()">🎤</button>
     </div>
   </div>
@@ -131,7 +144,6 @@ function join(){
   msg.focus()
 }
 
-// زرار واحد: لو في كلام يبقى إرسال، لو فاضي يبقى مايك
 msg.oninput=()=>{
   if(msg.value.trim()){
     sendBtn.className='sendBtn send';
@@ -170,11 +182,11 @@ img.onchange=e=>{
       const i=new Image();
       i.onload=()=>{
         const c=document.createElement('canvas');
-        const max=800;let w=i.width,h=i.height;
+        const max=900;let w=i.width,h=i.height;
         if(w>h){if(w>max){h*=max/w;w=max}}else{if(h>max){w*=max/h;h=max}}
         c.width=w;c.height=h;
         c.getContext('2d').drawImage(i,0,0,w,h);
-        socket.emit('chat',{img:c.toDataURL('image/jpeg',0.7),replyTo:replyTo});
+        socket.emit('chat',{img:c.toDataURL('image/jpeg',0.8),replyTo:replyTo});
         cancelReply()
       };
       i.src=r.result
@@ -253,7 +265,7 @@ function render(d){
   const delBtn=me?'<button class="deleteBtn" onclick="del(\''+d.msgId+'\')">×</button>':'';
   const userName=!me?'<div class="msg-user">'+d.user+'</div>':'';
 
-  return '<div class="msg '+(me?'me':'other')+'" id="m'+d.msgId+'" ontouchstart="touchTimer=setTimeout(()=>doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`),500)" ontouchend="clearTimeout(touchTimer)" ondblclick="doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`)">'+delBtn+'<div class="msg-bubble">'+replyHtml+userName+'<div>'+d.text+'</div>'+mediaHtml+'<div class="msg-info"><span class="msg-time">'+d.time+'</span>'+checks+'</div></div></div>'
+  return '<div class="msg '+(me?'me':'other')+'" id="m'+d.msgId+'" ontouchstart="touchTimer=setTimeout(()=>doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`),600)" ontouchend="clearTimeout(touchTimer)" ondblclick="doReply(\''+d.msgId+'\',\''+d.user+'\',`'+(d.text||'').replace(/`/g,'')+'`)">'+delBtn+'<div class="msg-bubble">'+replyHtml+userName+'<div>'+d.text+'</div>'+mediaHtml+'<div class="msg-info"><span class="msg-time">'+d.time+'</span>'+checks+'</div></div></div>'
 }
 
 function playNotif(){
