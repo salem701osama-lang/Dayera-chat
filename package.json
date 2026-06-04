@@ -1,7 +1,7 @@
 {
   "name": "dayera-chat",
   "version": "1.0.0",
-  "description": "برنامج مراسلة خاص - سالم حجاج",
+  "description": "برنامج مراسلة خاص - مهندس سالم حجاج",
   "main": "index.js",
   "scripts": {"start": "node index.js"},
   "dependencies": {

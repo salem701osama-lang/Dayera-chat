@@ -13,16 +13,20 @@ app.get('/', (req,res) => res.sendFile(path.join(__dirname,'public-index.html'))
 let onlineUsers = {}, chatHistory = [];
 const MAX = 2000;
 
-// فلتر الشتايم اللي طلبته
-const bad = ['كسمك','كس امك','شرموط','عرص','منيوك','متناك','لبوة','fuck','shit','bitch'];
-function hasBad(t){if(!t)return 0;t=t.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g,'');return bad.some(w=>t.includes(w))}
+// فلتر الشتايم - كل الكلمات اللي طلبتها
+const bad = ['احا','كسمك','كس امك','كسامك','خول','يا خول','عرص','منيوك','متناك','شرموط','شرموطة','لبوة','نيك','منيك','fuck','shit','bitch'];
+function hasBad(t){
+  if(!t) return 0;
+  t = t.toLowerCase().replace(/[^a-z0-9\u0600-\u06FF]/g,'');
+  return bad.some(w => t.includes(w.replace(/[^a-z0-9\u0600-\u06FF]/g,'')))
+}
 
 io.on('connection', s => {
   s.on('join', name => {
     onlineUsers[s.id] = {name};
     s.emit('chatHistory', chatHistory);
     io.emit('userList', Object.values(onlineUsers).map(u=>u.name));
-    io.emit('chat',{user:'النظام',text:name+' دخل 🔥',time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),msgId:'sys'+Date.now(),id:'system'});
+    io.emit('chat',{user:'النظام',text:name+' دخل الدردشة 🔥',time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),msgId:'sys'+Date.now(),id:'system'});
   });
 
   s.on('chat', d => {
@@ -55,9 +59,9 @@ io.on('connection', s => {
     if(u){
       delete onlineUsers[s.id];
       io.emit('userList', Object.values(onlineUsers).map(u=>u.name));
-      io.emit('chat',{user:'النظام',text:u.name+' خرج',msgId:'sys'+Date.now(),id:'system'});
+      io.emit('chat',{user:'النظام',text:u.name+' خرج من الدردشة',msgId:'sys'+Date.now(),id:'system'});
     }
   });
 });
 
-server.listen(process.env.PORT||3000,'0.0.0.0',()=>console.log('شغال'));
+server.listen(process.env.PORT||3000,'0.0.0.0',()=>console.log('دايرة شات شغال'));
