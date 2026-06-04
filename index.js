@@ -22,38 +22,50 @@ function hasBad(t){
 
 io.on('connection', s => {
   s.on('join', name => {
-    onlineUsers[s.id] = {name};
+    onlineUsers[s.id] = {name, userId: s.id}; // userId ثابت
     s.emit('chatHistory', chatHistory);
+    s.emit('yourId', s.id); // نبعت id بتاعه عشان يعرف يمسح
     io.emit('userList', Object.values(onlineUsers).map(u=>u.name));
-    io.emit('chat',{user:'النظام',text:name+' دخل الدردشة 🔥',time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),msgId:'sys'+Date.now(),id:'system'});
+    io.emit('chat',{user:'النظام',text:name+' دخل الدردشة 🔥',time:new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),msgId:'sys'+Date.now(),userId:'system'});
   });
 
   s.on('chat', d => {
     const u = onlineUsers[s.id];
     if(!u) return;
     if(d.text && hasBad(d.text)){
-      return s.emit('chat',{user:'النظام',text:'⚠️ ممنوع الشتايم يا '+u.name,msgId:'warn'+Date.now(),id:'system'});
+      return s.emit('chat',{user:'النظام',text:'⚠️ ممنوع الشتايم يا '+u.name,msgId:'warn'+Date.now(),userId:'system'});
     }
     const msg = {
       msgId: Date.now()+Math.random(),
       user: u.name,
+      userId: s.id, // نخزن id ثابت
       text: d.text?d.text.slice(0,500):'',
       img: d.img||null,
       audio: d.audio||null,
       replyTo: d.replyTo||null,
       time: new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'}),
-      id: s.id
+      read: false
     };
     chatHistory.push(msg);
     if(chatHistory.length>MAX) chatHistory.shift();
     io.emit('chat',msg);
   });
 
+  // حذف الرسالة - المالك بس وتأكدنا منه
   s.on('deleteMsg', msgId => {
     const msg = chatHistory.find(m => m.msgId == msgId);
-    if(msg && msg.id === s.id){
+    if(msg && msg.userId === s.id){
       chatHistory = chatHistory.filter(m => m.msgId!= msgId);
       io.emit('msgDeleted', msgId);
+    }
+  });
+
+  // علامتين الصح - الرسالة اتقريت
+  s.on('markRead', msgId => {
+    const msg = chatHistory.find(m => m.msgId == msgId);
+    if(msg && msg.userId!== s.id){
+      msg.read = true;
+      io.emit('msgRead', msgId);
     }
   });
 
@@ -62,7 +74,7 @@ io.on('connection', s => {
     if(u){
       delete onlineUsers[s.id];
       io.emit('userList', Object.values(onlineUsers).map(u=>u.name));
-      io.emit('chat',{user:'النظام',text:u.name+' خرج من الدردشة',msgId:'sys'+Date.now(),id:'system'});
+      io.emit('chat',{user:'النظام',text:u.name+' خرج من الدردشة',msgId:'sys'+Date.now(),userId:'system'});
     }
   });
 });
