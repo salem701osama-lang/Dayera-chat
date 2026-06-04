@@ -1,89 +1,36 @@
 const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
-
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" },
-  maxHttpBufferSize: 1e8 // عشان الصور والريكورد
-});
+const http = require('http').createServer(app);
+const io = require('socket.io')(http);
 
-app.use(express.static(path.join(__dirname)));
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public-index.html'));
-});
+app.use(express.static('public'));
 
-let onlineUsers = {};
-let chatHistory = [];
-const MAX_MESSAGES = 2000;
+let msgs = [];
 
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-
-  socket.on('join', (username) => {
-    onlineUsers[socket.id] = { id: socket.id, name: username };
-
-    // ابعت التاريخ للي دخل جديد
-    socket.emit('chatHistory', chatHistory);
-
-    io.emit('userList', Object.values(onlineUsers).map(u => u.name));
-    io.emit('chat', {
-      user: 'النظام',
-      text: username + ' دخل الدردشة 🔥',
-      time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
-      msgId: 'sys-' + Date.now(),
-      id: 'system'
-    });
+io.on('connection', socket => {
+  socket.on('join', name => {
+    socket.name = name.substring(0,20);
+    socket.emit('history', msgs);
+    socket.broadcast.emit('msg', {sys: `${socket.name} دخل`});
   });
 
-  socket.on('chat', (data) => {
-    const user = onlineUsers[socket.id];
-    if(user) {
-      const msg = {
-        msgId: Date.now() + Math.random(),
-        user: user.name,
-        text: data.text || '',
-        img: data.img || null,
-        audio: data.audio || null,
-        time: new Date().toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'}),
-        id: socket.id
-      };
-
-      chatHistory.push(msg);
-      if(chatHistory.length > MAX_MESSAGES) chatHistory.shift();
-
-      io.emit('chat', msg);
-    }
-  });
-
-  // مسح الرسالة
-  socket.on('deleteMsg', (msgId) => {
-    const user = onlineUsers[socket.id];
-    if(user) {
-      chatHistory = chatHistory.filter(m => m.msgId!= msgId);
-      io.emit('msgDeleted', msgId);
-    }
+  socket.on('msg', data => {
+    const m = {
+      id: socket.id,
+      name: socket.name,
+      text: data.text?.slice(0,500),
+      img: data.img || null,
+      audio: data.audio || null,
+      time: new Date().toLocaleTimeString('ar-EG',{hour:'2-digit',minute:'2-digit'})
+    };
+    msgs.push(m);
+    if(msgs.length > 100) msgs.shift();
+    io.emit('msg', m);
   });
 
   socket.on('disconnect', () => {
-    const user = onlineUsers[socket.id];
-    if(user) {
-      delete onlineUsers[socket.id];
-      io.emit('userList', Object.values(onlineUsers).map(u => u.name));
-      io.emit('chat', {
-        user: 'النظام',
-        text: user.name + ' خرج من الدردشة',
-        time: '',
-        msgId: 'sys-' + Date.now(),
-        id: 'system'
-      });
-    }
+    if(socket.name) socket.broadcast.emit('msg', {sys: `${socket.name} خرج`});
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log('دايرة شات شغال على بورت ' + PORT);
-});
+http.listen(process.env.PORT || 3000);
